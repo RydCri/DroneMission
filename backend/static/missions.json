@@ -1,0 +1,22 @@
+[
+  {
+  "title": "Mission 1",
+  "glbPath": "/static/models/Mission_1.glb",
+  "ndviPath": "/static/scans/Mission_1_ndvi.png"
+  },
+  {
+    "title": "Mission 2",
+    "glbPath": "/static/models/Mission_2.glb",
+    "ndviPath": "/static/scans/Mission_2_ndvi.png"
+  },
+  {
+  "title": "Mission 3",
+  "glbPath": "/static/models/Mission_3.glb",
+  "ndviPath": "/static/scans/Mission_3_ndvi.png"
+  },
+  {
+    "title": "Mission 4",
+    "glbPath": "/static/models/Mission_4.glb",
+    "ndviPath": "/static/scans/Mission_4_ndvi.png"
+  }
+]
