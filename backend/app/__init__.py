@@ -14,8 +14,21 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///flights.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+    #TODO: Change this for prod
+    app.config.update(
+        SESSION_COOKIE_SAMESITE='None',
+        SESSION_COOKIE_SECURE=True  # True for HTTPS
+    )
+
+
     # Extensions
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
+    CORS(app,
+         supports_credentials=True,
+         resources={
+             r"/auth/*": {"origins": "http://localhost:5173"},
+             r"/api/*": {"origins": "http://localhost:5173"}
+         }
+         )
     db.init_app(app)
 
     # Register Blueprints
