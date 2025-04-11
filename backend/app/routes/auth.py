@@ -51,6 +51,14 @@ def logout():
     return jsonify({'message': 'Logged out'})
 
 
+@auth.route('/session')
+def session_status():
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+        return jsonify({'username': user.username})
+    return jsonify({'message': 'Not logged in'}), 401
+
+
 @auth.route("/profile")
 @login_required
 def profile():
