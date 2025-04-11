@@ -1,27 +1,33 @@
 import os
 from flask import send_from_directory
 from werkzeug.utils import secure_filename
-from flask import Blueprint, jsonify
-from ..models import Flight
+from flask import Blueprint, jsonify, session
+from ..models import Flight, User
 from ..extensions import db
 
 main = Blueprint('main', __name__)
 
-@main.route('/flights/user', methods=['GET'])
+
+@main.route('/api/flights/user', methods=['GET'])
 def get_user_flights():
-    from flask import session
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Unauthorized'}), 401
 
-    user_id = session.get('user_id', 1)  # TODO: replace with real session value
-    flights = Flight.query.filter_by(user_id=user_id).all()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
 
-    return jsonify([
+    user_flights = [
         {
-            'id': f.id,
-            'title': f.title,
-            'glbPath': f.glb_path,
-            'ndviPath': f.ndvi_path
-        } for f in flights
-    ])
+            'id': flight.id,
+            'title': flight.title,
+            'glbPath': flight.glb_path,
+            'ndviPath': flight.ndvi_path
+        } for flight in user.flights
+    ]
+
+    return jsonify({'flights': user_flights}), 200
 
 
 @main.route('/upload', methods=['POST'])
