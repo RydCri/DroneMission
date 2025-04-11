@@ -1,43 +1,30 @@
 import os
-from flask import Flask, request, jsonify, send_from_directory
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from flask_bcrypt import Bcrypt
+from flask import send_from_directory
 from werkzeug.utils import secure_filename
-from flask_cors import CORS
-
-
 from flask import Blueprint, jsonify
 from ..models import Flight
 from ..extensions import db
 
 main = Blueprint('main', __name__)
 
-@main.route('/api/missions', methods=['GET'])
-def get_missions():
-    missions = Flight.query.all()
-    return jsonify([
-        {
-            'title': flight.title,
-            'glbPath': flight.glb_path,
-            'ndviPath': flight.ndvi_path
-        } for flight in missions
-    ])
+@main.route('/flights/user', methods=['GET'])
+def get_user_flights():
+    from flask import session
 
-@main.route('/api/flights', methods=['GET'])
-def get_flights():
-    # Replace `1` with session user ID
-    flights = Flight.query.filter_by(user_id=1).all()
+    user_id = session.get('user_id', 1)  # TODO: replace with real session value
+    flights = Flight.query.filter_by(user_id=user_id).all()
+
     return jsonify([
         {
-            "id": f.id,
-            "title": f.title,
-            "glbPath": f"/models/{os.path.basename(f.glb_path)}",
-            "ndviPath": f"/scans/{os.path.basename(f.ndvi_path)}"
+            'id': f.id,
+            'title': f.title,
+            'glbPath': f.glb_path,
+            'ndviPath': f.ndvi_path
         } for f in flights
     ])
 
-@main.route('/api/upload', methods=['POST'])
+
+@main.route('/upload', methods=['POST'])
 def upload_flight():
     from flask import current_app, request, session
 
@@ -65,7 +52,7 @@ def upload_flight():
 
     return jsonify({'message': 'Flight uploaded successfully'}), 201
 
-@main.route('/api/flights/<int:flight_id>', methods=['PUT'])
+@main.route('/flights/<int:flight_id>', methods=['PUT'])
 def update_flight(flight_id):
     from flask import request, current_app, session
 
@@ -96,23 +83,6 @@ def update_flight(flight_id):
     return jsonify({'message': 'Flight updated'})
 
 
-@main.route('/api/flights', methods=['GET'])
-def get_user_flights():
-    from flask import session
-
-    user_id = session.get('user_id', 1)  # TODO: Replace with real login session
-    flights = Flight.query.filter_by(user_id=user_id).all()
-
-    return jsonify([
-        {
-            'id': f.id,
-            'title': f.title,
-            'glbPath': f.glb_path,
-            'ndviPath': f.ndvi_path
-        } for f in flights
-    ])
-
-
 @main.route('/data', methods=['GET'])
 def get_data():
     data = {
@@ -122,7 +92,7 @@ def get_data():
     return jsonify(data)
 
 
-@main.route('/api/mission', methods=['GET'])
+@main.route('/mission', methods=['GET'])
 def get_missions():
     return send_from_directory(os.getcwd(), './static/missions.json')
 
