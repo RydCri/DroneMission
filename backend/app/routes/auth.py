@@ -10,6 +10,10 @@ auth = Blueprint('auth', __name__)
 # def load_user(user_id):
 #     return User.query.get(int(user_id))
 
+@auth.route('/test', methods=['POST'])
+def auth_test():
+    return jsonify({'message': 'Test successful'}), 201
+
 
 @auth.route('/signup', methods=['POST'])
 def signup():
@@ -28,12 +32,17 @@ def signup():
 
 @auth.route('/login', methods=['POST'])
 def login():
-    data = request.json
-    user = User.query.filter_by(email=data['email']).first()
-    if user and user.check_password(data['password']):
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    user = User.query.filter_by(username=username).first()
+
+    if user and user.check_password(password):
         session['user_id'] = user.id
-        return jsonify({'message': 'Logged in', 'username': user.username})
-    return jsonify({'error': 'Invalid credentials'}), 401
+        return jsonify({"message": "Logged in successfully"}), 200
+    else:
+        return jsonify({"error": "Invalid username or password"}), 401
 
 
 @auth.route('/logout', methods=['POST'])
@@ -42,7 +51,7 @@ def logout():
     return jsonify({'message': 'Logged out'})
 
 
-@auth.route("/api/profile")
+@auth.route("/profile")
 @login_required
 def profile():
     user_data = {
