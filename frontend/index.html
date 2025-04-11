@@ -7,12 +7,31 @@
   <title>Vite + Flask</title>
 </head>
 <body>
+<div class="wrapper">
+<!--login-->
+<button id="login-btn">Login</button>
+<div id="login-modal" class="modal hidden">
+  <form id="login-form">
+    <input type="email" name="email" placeholder="Email" required />
+    <input type="password" name="password" placeholder="Password" required />
+    <button type="submit">Login</button>
+  </form>
+</div>
+
+<div id="profile-modal" class="modal hidden">
+  <h2>Welcome, <span id="user-email"></span></h2>
+  <button id="logout-btn">Logout</button>
+  <h3>Your Flights</h3>
+  <ul id="user-flights"></ul>
+</div>
+<!--login modal-->
 <div id="app"></div>
 <select name="missions" id="missions">
 </select>
 <label for="missions">Select Flight</label>
 <p id="loading-progress"></p>
 <div id="container"></div>
+</div>
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>
