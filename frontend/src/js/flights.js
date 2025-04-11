@@ -60,3 +60,16 @@ function populateFlights(flights) {
     `;
     });
 }
+
+
+export function setupFlights() {
+    console.log('Fetching User Flights')
+    fetch('http://127.0.0.1:5000/api/flights/user')
+        .then(res => res.json())
+        .then(data => {
+            const missions = document.getElementById('missions');
+            data.forEach(flight => {
+                missions.innerHTML += `<option>${flight.title}</option>`;
+            });
+        });
+}
