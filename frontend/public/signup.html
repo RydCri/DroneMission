@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Sign Up</title>
+</head>
+<body>
+<h1>Create an Account</h1>
+<form id="signup-form">
+    <input type="email" placeholder="Email" name="email" required />
+    <input type="password" placeholder="Password" name="password" required />
+    <button type="submit">Sign Up</button>
+</form>
+
+<script>
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = new FormData(e.target);
+        const res = await fetch('/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: form.get('email'),
+                password: form.get('password')
+            })
+        });
+        if (res.ok) {
+            alert("Signed up!");
+            window.location.href = '/';
+        } else {
+            alert("Signup failed.");
+        }
+    });
+</script>
+</body>
+</html>
