@@ -15,7 +15,7 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Extensions
-    CORS(app)
+    CORS(app, supports_credentials=True)
     db.init_app(app)
 
     # Register Blueprints
