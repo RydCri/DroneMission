@@ -1,6 +1,7 @@
 from .extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
@@ -12,6 +13,10 @@ class User(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    # One-to-many
+    flights = db.relationship('Flight', backref='user', lazy=True)
+
 
 class Flight(db.Model):
     id = db.Column(db.Integer, primary_key=True)
