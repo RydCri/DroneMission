@@ -1,9 +1,20 @@
 // frontend/src/main.js
 import {GLTFLoader, OrbitControls} from "three/addons";
-import { showProfileModal } from './ui';
 import './styles.css';
 import {Scene, LoadingManager, PerspectiveCamera, HemisphereLight, Clock, DirectionalLight, WebGLRenderer} from "three";
+import { ModalManager } from './js/modal.js';
+import { showProfileModal } from './ui';
+import { setupAuth } from './js/auth.js';
+import { setupFlights } from './js/flights.js';
+import { setupProfile } from './js/profile.js';
+
+ModalManager.register('login-modal');
+ModalManager.register('profile-modal');
+ModalManager.register('upload-modal');
+
 let currentModel = null;
+let currentUser = null;
+let profileUsername;
 let missionsData,
     glbPath,
     camera,
@@ -16,31 +27,19 @@ init()
 let progressBar = document.getElementById('loading-progress')
 
 
-// Fetch data from Flask backend
-fetch('http://127.0.0.1:5000/api/data')
-    .then(response => response.json())
-    .then(data => {
-        const appDiv = document.getElementById('app');
-        appDiv.innerHTML = `
-      <h1>Vite + Flask</h1>
-      <pre>${JSON.stringify(data, null, 2)}</pre>
-    `;
-    })
-    .catch(error => {
-        console.error('Error fetching data:', error);
-    });
-fetch('http://127.0.0.1:5000/api/mission')
-    .then(response => response.json())
-    .then(data => {
-        missionsData = data;
-        const misDiv = document.getElementById('missions');
-        data.forEach( (d) => {
-        misDiv.innerHTML += `<option value="${d.title}">${d.title}</option>`;
-        })
-    })
-    .catch(error => {
-        console.error('Error fetching data:', error);
-    });
+// Fetch default missions
+// fetch('http://127.0.0.1:5000/api/mission')
+//     .then(response => response.json())
+//     .then(data => {
+//         missionsData = data;
+//         const misDiv = document.getElementById('missions');
+//         data.forEach( (d) => {
+//         misDiv.innerHTML += `<option value="${d.title}">${d.title}</option>`;
+//         })
+//     })
+//     .catch(error => {
+//         console.error('Error fetching data:', error);
+//     });
 
 // Mission Change Listener
 function getGlbPathByTitle(selectedTitle) {
@@ -54,6 +53,8 @@ document.getElementById('missions').addEventListener('change', (event) => {
     console.log('Current Model:', currentModel)
     loadModel(glbPath)
 })
+
+// ThreeJS funcs
 function loadModel(model) {
     const manager = new LoadingManager();
     manager.onStart = function (url, itemsLoaded, itemsTotal) {
@@ -168,125 +169,17 @@ function init() {
     scene.add(dirLight);
 
 }
+// ThreeJS
 
-
-// login modal
-
-document.getElementById('login-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const form = e.target;
-    const formData = new FormData(form);
-    const payload = {
-        username: formData.get('username'),
-        password: formData.get('password')
-    };
-    console.log(payload)
-
-    const res = await fetch('http://127.0.0.1:5000/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    });
-    console.log(res)
-
-    if (res.ok) {
-        alert('Logged in!');
-        form.reset();
-        // loadFlights(); // Fetch flights for logged-in user
-        document.getElementById('login-section').style.display = 'none';
-    } else {
-        const err = await res.json();
-        alert(`Login failed: ${err.error || 'Unknown error'}`);
-    }
-});
-
-
-document.getElementById('logout-btn').addEventListener('click', async () => {
-    const res = await fetch('http://127.0.0.1:5000/auth/logout');
-    if (res.ok) {
-        document.getElementById('profile-modal').classList.add('hidden');
-    }
-});
-
-document.getElementById('login-btn').addEventListener('click', () => {
-    document.getElementById('login-modal').classList.remove('hidden');
-});
-
-// Opens when profile model loads
-
-document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const res = await fetch('http://127.0.0.1:5000/api/upload', {
-        method: 'POST',
-        body: formData
-    });
-    const result = await res.json();
-    console.log(result);
-    loadFlights(); // Refresh flight list
-});
 
 document.addEventListener('DOMContentLoaded', () => {
-    // loadFlights();
+    // Register all modals
+    ModalManager.register('login-modal');
+    ModalManager.register('profile-modal');
+    ModalManager.register('upload-modal');
 
-    const uploadForm = document.getElementById('upload-form');
-    uploadForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(uploadForm);
-
-        const res = await fetch('http://127.0.0.1:5000/api/upload', {
-            method: 'POST',
-            body: formData
-        });
-
-        if (res.ok) {
-            alert('Upload successful!');
-            uploadForm.reset();
-            loadFlights();
-        } else {
-            alert('Upload failed');
-        }
-    });
+    // Init modules
+    setupAuth();
+    setupFlights();
+    setupProfile();
 });
-
-async function loadFlights() {
-    const res = await fetch('http://127.0.0.1:5000/api/flights/user');
-    const flights = await res.json();
-    const flightList = document.getElementById('flight-list');
-    flightList.innerHTML = '';
-
-    flights.forEach(flight => {
-        const div = document.createElement('div');
-        div.className = 'flight-card';
-        div.innerHTML = `
-      <h4>${flight.title}</h4>
-      <img src="${flight.ndviPath}" alt="NDVI preview" width="200" />
-      <p>
-        <button onclick="viewFlight('${flight.glbPath}')">View</button>
-        <button onclick="deleteFlight(${flight.id})">Delete</button>
-      </p>
-    `;
-        flightList.appendChild(div);
-    });
-}
-
-function viewFlight(glbPath) {
-    // reuse your init(glbPath) logic to load model
-    init(glbPath);
-}
-
-async function deleteFlight(id) {
-    if (!confirm("Delete this flight?")) return;
-
-    const res = await fetch(`http://127.0.0.1:5000/api/flights/${id}`, { method: 'DELETE' });
-    if (res.ok) {
-        alert('Flight deleted');
-        loadFlights();
-    } else {
-        alert('Failed to delete flight');
-    }
-}
-
-
-fetch('http://127.0.0.1:5000/auth/test',{  method: 'POST'})
