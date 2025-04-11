@@ -8,52 +8,40 @@
   <title>Vite + Flask</title>
 </head>
 <body>
-<div class="wrapper">
-<!--login-->
-<button id="login-btn">Login</button>
-<div id="login-modal" class="modal hidden">
-  <div id="login-section">
-    <h2>Login</h2>
-    <form id="login-form">
-      <input type="text" name="username" placeholder="Username" required><br>
-      <input type="password" name="password" placeholder="Password" required><br>
-      <button type="submit">Login</button>
-    </form>
-  </div>
+<!-- Navbar -->
+<nav class="flex justify-between items-center bg-gray-900 text-white px-4 py-2">
+  <h1 class="text-lg font-bold">Flight Viewer</h1>
+  <div id="nav-user" class="relative">
+    <button id="user-icon" class="rounded-full w-8 h-8 bg-gray-700 hover:bg-gray-600 focus:outline-none">
+      <img src="./src/default-avatar.svg" alt="User" class="w-full h-full rounded-full object-cover">
+    </button>
 
-</div>
-<!--login modal-->
-
-<!--  profile modal-->
-<div id="profile-modal" class="modal hidden">
-  <h2>Welcome, <span id="user-email"></span></h2>
-  <div id="profileModal" class="modal hidden">
-    <div class="modal-content">
-      <h2>Your Flights</h2>
-      <div id="flightsContainer"></div>
-
-      <hr />
-
-      <h3>Upload New Flight</h3>
-      <form id="uploadForm" enctype="multipart/form-data">
-        <input type="text" name="title" placeholder="Mission Title" required /><br>
-        <input type="file" name="model" accept=".glb" required /><br>
-        <input type="file" name="ndvi" accept="image/*" required /><br>
-        <button type="submit">Upload</button>
-      </form>
-
-      <button onclick="closeProfile()">Close</button>
+    <!-- Modal -->
+    <div id="profile-modal" class="hidden absolute right-0 mt-2 w-64 bg-white text-black rounded-lg shadow-xl z-10">
+      <div class="flex justify-between items-center px-4 py-2 border-b">
+        <span id="profile-username" class="font-semibold text-gray-800"></span>
+        <button id="close-profile" class="text-gray-500 hover:text-gray-800 text-lg font-bold">×</button>
+      </div>
+      <div class="p-4">
+        <h3 class="font-semibold mb-2">Your Flights</h3>
+        <ul id="flight-list" class="space-y-2 text-sm overflow-y-auto max-h-48">
+          <!-- Flights with thumbnails injected here -->
+        </ul>
+      </div>
     </div>
   </div>
-  <button id="logout-btn">Logout</button>
-  <h3>Your Flights</h3>
-  <ul id="user-flights"></ul>
-</div>
-<!--  profile modal-->
+</nav>
+
+
+
+<div class="wrapper">
+
+
+
 <div id="app"></div>
-<select name="missions" id="missions">
-</select>
-<label for="missions">Select Flight</label>
+<!--<select name="missions" id="missions">-->
+<!--</select>-->
+<!--<label for="missions">Select Flight</label>-->
 <p id="loading-progress"></p>
 <div id="container"></div>
 </div>
