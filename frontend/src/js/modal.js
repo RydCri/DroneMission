@@ -20,12 +20,29 @@ export const ModalManager = (() => {
     }
 
     function show(id) {
-        Object.values(modals).forEach(m => m.classList.add('hidden'));
-        if (modals[id]) modals[id].classList.remove('hidden');
+        const modal = document.getElementById(id);
+        const content = modal.querySelector(`#${id}-content`);
+        if (!modal || !content) return;
+        modal.classList.remove('hidden');
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100', 'pointer-events-auto');
+
+        // Animate modal content in
+        content.classList.remove('scale-95', 'translate-y-4');
+        content.classList.add('scale-100', 'translate-y-0');
     }
 
     function hide(id) {
-        if (modals[id]) modals[id].classList.add('hidden');
+        const modal = document.getElementById(id);
+        const content = modal.querySelector(`#${id}-content`);
+        if (!modal || !content) return;
+        modal.classList.add('hidden');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        modal.classList.remove('opacity-100', 'pointer-events-auto');
+
+        // Animate modal content out
+        content.classList.add('scale-95', 'translate-y-4');
+        content.classList.remove('scale-100', 'translate-y-0');
     }
 
     function toggle(id) {
