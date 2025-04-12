@@ -40,6 +40,7 @@ def login():
 
     if user and user.check_password(password):
         session['user_id'] = user.id
+        print("Session Created ", session['user_id'])
         return jsonify({"message": "Logged in successfully"}), 200
     else:
         return jsonify({"error": "Invalid username or password"}), 401
@@ -55,6 +56,7 @@ def logout():
 def session_status():
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
+        print("Get Session Called")
         return jsonify({'username': user.username})
     return jsonify({'message': 'Not logged in'}), 401
 
