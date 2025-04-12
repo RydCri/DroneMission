@@ -1,5 +1,5 @@
 import os
-from flask import send_from_directory
+from flask import send_from_directory, request
 from werkzeug.utils import secure_filename
 from flask import Blueprint, jsonify, session
 from ..models import Flight, User
@@ -8,9 +8,10 @@ from ..extensions import db
 main = Blueprint('main', __name__)
 
 
-@main.route('/api/flights/user', methods=['GET'])
+@main.route('/flights/user', methods=['GET'])
 def get_user_flights():
     user_id = session.get('user_id')
+    print("Session ID: ", user_id)
     if not user_id:
         return jsonify({'error': 'Unauthorized'}), 401
 
@@ -60,34 +61,35 @@ def upload_flight():
 
 @main.route('/flights/<int:flight_id>', methods=['PUT'])
 def update_flight(flight_id):
-    from flask import request, current_app, session
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Unauthorized'}), 401
 
-    flight = Flight.query.get_or_404(flight_id)
+    data = request.get_json()
+    new_title = data.get('title')
 
-    if flight.user_id != session.get('user_id', 1):
-        return jsonify({'error': 'Unauthorized'}), 403
+    flight = Flight.query.filter_by(id=flight_id, user_id=user_id).first()
+    if not flight:
+        return jsonify({'error': 'Flight not found'}), 404
 
-    title = request.form.get('title')
-    if title:
-        flight.title = title
-
-    if 'model' in request.files:
-        model_file = request.files['model']
-        filename_model = secure_filename(model_file.filename)
-        model_path = os.path.join(current_app.config['UPLOAD_FOLDER_MODELS'], filename_model)
-        model_file.save(model_path)
-        flight.glb_path = f'/models/{filename_model}'
-
-    if 'ndvi' in request.files:
-        ndvi_file = request.files['ndvi']
-        filename_ndvi = secure_filename(ndvi_file.filename)
-        ndvi_path = os.path.join(current_app.config['UPLOAD_FOLDER_SCANS'], filename_ndvi)
-        ndvi_file.save(ndvi_path)
-        flight.ndvi_path = f'/scans/{filename_ndvi}'
-
+    flight.title = new_title
     db.session.commit()
-    return jsonify({'message': 'Flight updated'})
+    return jsonify({'message': 'Flight updated successfully'})
 
+
+@main.route('/flights/<int:flight_id>', methods=['DELETE'])
+def delete_flight(flight_id):
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    flight = Flight.query.filter_by(id=flight_id, user_id=user_id).first()
+    if not flight:
+        return jsonify({'error': 'Flight not found'}), 404
+
+    db.session.delete(flight)
+    db.session.commit()
+    return jsonify({'message': 'Flight deleted successfully'})
 
 @main.route('/data', methods=['GET'])
 def get_data():
