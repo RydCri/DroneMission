@@ -63,8 +63,8 @@ function populateFlights(flights) {
 
 
 export function setupFlights() {
-    console.log('Fetching User Flights')
-    fetch('http://127.0.0.1:5000/api/flights/user', {
+    console.log('Fetching Page Flights (Not Setup)')
+    fetch('http://127.0.0.1:5000/api/flights/', {
         method: 'GET',
         credentials: 'include'})
         .then(res => res.json())
