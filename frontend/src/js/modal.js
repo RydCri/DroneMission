@@ -11,21 +11,15 @@ export const ModalManager = (() => {
         }
 
         modals[id] = el;
-
-        // Add close handler if an 'X' button exists
-        const closeBtn = el.querySelector('.modal-close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => hide(id));
-        }
     }
-
     function show(id) {
         const modal = document.getElementById(id);
         const content = modal.querySelector(`#${id}-content`);
-        if (!modal || !content) return;
+        if (!modal) return;
+        console.log("Modal-show: ", id)
         modal.classList.remove('hidden');
         modal.classList.remove('opacity-0', 'pointer-events-none');
-        modal.classList.add('opacity-100', 'pointer-events-auto');
+        content.classList.add('opacity-100', 'pointer-events-auto');
 
         // Animate modal content in
         content.classList.remove('scale-95', 'translate-y-4');
@@ -35,10 +29,11 @@ export const ModalManager = (() => {
     function hide(id) {
         const modal = document.getElementById(id);
         const content = modal.querySelector(`#${id}-content`);
-        if (!modal || !content) return;
+        if (!modal) return;
+        console.log("Modal-hide: ", id)
         modal.classList.add('hidden');
         modal.classList.add('opacity-0', 'pointer-events-none');
-        modal.classList.remove('opacity-100', 'pointer-events-auto');
+        content.classList.remove('opacity-100', 'pointer-events-auto');
 
         // Animate modal content out
         content.classList.add('scale-95', 'translate-y-4');
@@ -46,8 +41,19 @@ export const ModalManager = (() => {
     }
 
     function toggle(id) {
-        if (modals[id]) modals[id].classList.toggle('hidden');
-    }
+        const modal = document.getElementById(id);
+        if (!modal) {
+            return;
+        }
+        if (modal.classList.contains('hidden')) {
+            modal.classList.remove('hidden');
+            return;
+        }
+        if (!modal.classList.contains('hidden')) {
+            modal.classList.add('hidden')
+        }
 
+
+    }
     return { register, show, hide, toggle };
 })();
