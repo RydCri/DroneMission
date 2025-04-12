@@ -9,7 +9,37 @@ export function setupProfile() {
     const profileModal = document.getElementById('profile-modal')
     if (profileBtn) {
         profileBtn.addEventListener('click', () => {
-            profileModal.classList.toggle('hide')
+            ModalManager.toggle(profileModal)
+            console.log('Profile btn clicka')
+        });
+    }
+
+    const flightBtn = document.getElementById('flight-button');
+    const flightModal = document.getElementById('flight-modal');
+    const flightModalBtn = document.getElementById('flight-modal-button');
+    const flightModalContent = document.getElementById('flight-modal-content');
+    if (flightBtn) {
+        flightBtn.addEventListener('click', () => {
+            // flightModal.classList.toggle('hidden')
+            // flightModal.classList.toggle('opacity-100')
+            ModalManager.toggle(flightModal)
+            // flightModalContent.classList.toggle('hidden')
+            // flightModalContent.classList.toggle('opacity-100')
+            // profileModal.classList.toggle('bg-black')
+            ModalManager.toggle(profileModal)
+            console.log('Flight btn clicka')
+        });
+    }
+    if (flightModalBtn) {
+        flightModalBtn.addEventListener('click', () => {
+            // flightModal.classList.toggle('hidden')
+            // flightModal.classList.toggle('opacity-100')
+            ModalManager.toggle(flightModal)
+            // flightModalContent.classList.toggle('hidden')
+            // flightModalContent.classList.toggle('opacity-100')
+            // profileModal.classList.toggle('bg-black')
+            // profileModal.classList.toggle('bg-white')
+            console.log('FlightModalBtn Click')
         });
     }
 
@@ -26,8 +56,10 @@ export function setupProfile() {
 
         const { flights } = await res.json();
         const profileList = document.getElementById('user-flights');
-        profileList.innerHTML = '';
+        profileList.innerHTML = `<div class="flex flex-row"><button class="close-button basis-32" data-modal-target="flight-modal-content">✖</button> <h2 class="basis-150 text-xl font-semibold mb-4">Your Flights</h2></div>`;
 
+            const uploadBtn = document.createElement('div')
+            uploadBtn.innerHTML = `<button id="upload-flight-button" class="mt-4 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">Upload New Flight</button>`
         flights.forEach(f => {
             const flightItem = document.createElement('div');
             flightItem.classList.add('profile-flight');
@@ -51,6 +83,7 @@ export function setupProfile() {
 
             profileList.appendChild(flightItem);
         });
+            profileList.appendChild(uploadBtn)
     }
 
 // Delete button
