@@ -1,4 +1,3 @@
-<!-- frontend/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,43 +7,109 @@
   <title>Vite + Flask</title>
 </head>
 <body>
-<!-- Navbar -->
-<nav class="flex justify-between items-center bg-gray-900 text-white px-4 py-2">
-  <h1 class="text-lg font-bold">Flight Viewer</h1>
-  <div id="nav-user" class="relative">
-    <button id="user-icon" class="rounded-full w-8 h-8 bg-gray-700 hover:bg-gray-600 focus:outline-none">
-      <img src="./src/default-avatar.svg" alt="User" class="w-full h-full rounded-full object-cover">
-    </button>
 
-    <!-- Modal -->
-    <div id="profile-modal" class="hidden absolute right-0 mt-2 w-64 bg-white text-black rounded-lg shadow-xl z-10">
-      <div class="flex justify-between items-center px-4 py-2 border-b">
-        <span id="profile-username" class="font-semibold text-gray-800"></span>
-        <button id="close-profile" class="text-gray-500 hover:text-gray-800 text-lg font-bold">×</button>
-      </div>
-      <div class="p-4">
-        <h3 class="font-semibold mb-2">Your Flights</h3>
-        <ul id="flight-list" class="space-y-2 text-sm overflow-y-auto max-h-48">
-          <!-- Flights with thumbnails injected here -->
-        </ul>
-      </div>
-    </div>
+<!--Navbar-->
+<nav class="bg-gray-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
+  <!-- Left: Logo/Title -->
+  <div class="flex items-center space-x-3">
+    <img src="./drone_favi.png" alt="Logo" class="item_icon" style="height: 50px;width: 50px;" />
+    <span class="text-xl font-bold tracking-tight">FlightScan</span>
+  </div>
+
+  <!-- Center: Nav Links -->
+  <div class="hidden md:flex space-x-6">
+    <a href="#" class="hover:text-gray-300">Dashboard</a>
+    <a href="#" class="hover:text-gray-300">Explore Flights</a>
+  </div>
+
+  <!-- Right: Auth/Profile -->
+  <div class="flex items-center space-x-4">
+    <button id="login-button" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium cursor-pointer">Login</button>
+    <button id="profile-button" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded text-sm font-medium cursor-pointer">Profile</button>
   </div>
 </nav>
 
+<!--Edit Modal-->
+<div id="edit-modal" class="modal hidden">
+  <div class="modal-content">
+    <button id="edit-modal-button" class="close-button" data-modal-target="edit-modal" >×</button>
+    <h2>Edit Flight Title</h2>
+    <form id="edit-form">
+      <input type="text" id="edit-title" placeholder="New Title" required />
+      <input type="hidden" id="edit-id" />
+      <button type="submit" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm font-medium cursor-pointer">Update</button>
+    </form>
+  </div>
+</div>
 
-
+<!---->
 <div class="wrapper">
 
+<!-- 🔐 Login Modal -->
+<div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden duration-300 ease-in-out">
+  <div id="login-modal-content" class="bg-white rounded-2xl p-6 w-full max-w-md relative shadow-xl">
+    <button class="close-button" data-modal-target="login-modal">✖</button>
+    <h2 class="text-xl font-semibold mb-4">Sign in to your account</h2>
+    <form id="login-form" class="flex flex-col gap-4">
+      <input type="text" name="username" placeholder="Username" class="border p-2 rounded" required />
+      <input type="password" name="password" placeholder="Password" class="border p-2 rounded" required />
+      <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 cursor-pointer">Login</button>
+    </form>
+  </div>
+</div>
 
 
-<div id="app"></div>
+
+<!-- 👤 Profile Modal -->
+  <div id="profile-modal"
+       class="fixed inset-0 bg-opacity-50 z-50 flex justify-center pt-20 hidden duration-100 ease-in-out">
+    <div class="bg-gray-900 rounded-xl w-full max-w-lg p-6 transform scale-95 translate-y-4 transition-all duration-300 ease-in-out"
+         id="profile-modal-content">
+      <button class="close-button" data-modal-target="profile-modal">✖</button>
+    <button id="flight-button" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 cursor-pointer">Your Flights</button>
+        <div id="user-info" class="mb-4">
+          <!-- Username, maybe avatar etc -->
+        </div>
+    </div>
+  </div>
+  <div id="flight-modal" class="fixed inset-0 bg-opacity-50 flex justify-center items-start pt-20 hidden duration-300 ease-in-out">
+    <div id="user-flights" class="modal-content">
+
+
+      <div id="flight-modal-content" class="modal-content">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ☁️ Upload Modal -->
+<div id="upload-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-xl p-6 w-full max-w-lg relative shadow-xl">
+    <button class="close-button" data-modal-target="upload-modal">✖</button>
+    <h2 class="text-xl font-semibold mb-4">Upload New Flight</h2>
+    <form id="upload-form" class="flex flex-col gap-4" enctype="multipart/form-data">
+      <input type="text" name="title" placeholder="Flight Title" class="border p-2 rounded" required />
+      <label class="text-sm">GLB Model</label>
+      <input type="file" name="model" accept=".glb" required />
+      <label class="text-sm">NDVI Thumbnail</label>
+      <input type="file" name="ndvi" accept="image/png" required />
+      <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">Upload</button>
+    </form>
+  </div>
+</div>
+
+
+
+
+
+<!--<div id="app"></div>-->
 <!--<select name="missions" id="missions">-->
 <!--</select>-->
 <!--<label for="missions">Select Flight</label>-->
 <p id="loading-progress"></p>
 <div id="container"></div>
 </div>
+<script type="module" src="/src/js/modal.js"></script>
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>
