@@ -8,9 +8,7 @@ import { setupAuth } from './js/auth.js';
 import { setupFlights } from './js/flights.js';
 import { setupProfile } from './js/profile.js';
 
-ModalManager.register('login-modal');
-ModalManager.register('profile-modal');
-ModalManager.register('upload-modal');
+
 
 let currentModel = null;
 let currentUser = null;
@@ -46,13 +44,13 @@ function getGlbPathByTitle(selectedTitle) {
     const mission = missionsData.find(d => d.title === selectedTitle);
     return mission ? mission.glbPath : null;
 }
-document.getElementById('missions').addEventListener('change', (event) => {
-    const selectedTitle = event.target.value;
-    glbPath = getGlbPathByTitle(selectedTitle);
-    console.log('Selected GLB Path:', glbPath);
-    console.log('Current Model:', currentModel)
-    loadModel(glbPath)
-})
+// document.getElementById('missions').addEventListener('change', (event) => {
+//     const selectedTitle = event.target.value;
+//     glbPath = getGlbPathByTitle(selectedTitle);
+//     console.log('Selected GLB Path:', glbPath);
+//     console.log('Current Model:', currentModel)
+//     loadModel(glbPath)
+// })
 
 // ThreeJS funcs
 function loadModel(model) {
@@ -62,6 +60,7 @@ function loadModel(model) {
     };
     manager.onLoad = function () {
         progressBar.style.display = 'none';
+        document.getElementById('container').style.display = 'block';
         console.log('Loading complete!');
     };
     manager.onProgress = function (xhr) {
@@ -92,6 +91,7 @@ function loadModel(model) {
 
 function disposeModel(model) {
     console.log("Disposing ", model)
+    document.getElementById('container').style.display = 'none';
     model.traverse((object) => {
         if (object.isMesh) {
             if (object.geometry) object.geometry.dispose();
@@ -135,6 +135,7 @@ function init() {
 
     const container = document.getElementById('container');
     let progressBar = document.getElementById('loading-progress')
+    container.style.display = 'none';
     scene = new Scene();
     camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 100);
     camera.position.set(1, 2, 600);
@@ -173,6 +174,16 @@ function init() {
 
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    const loginBtn = document.getElementById('login-button');
+
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            ModalManager.toggle('login-modal');
+        });
+    }
+
+
     // Register all modals
     ModalManager.register('login-modal');
     ModalManager.register('profile-modal');
@@ -180,6 +191,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Init modules
     setupAuth();
-    setupFlights();
+    showProfileModal()
+    // setupFlights();
     setupProfile();
+
+});
+
+
+// close modal button listener
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('close-button')) {
+        const targetModalId = event.target.getAttribute('data-modal-target');
+        if (targetModalId) {
+           ModalManager.toggle(targetModalId);
+        } else {
+            console.warn("Close button missing data-modal-target attribute.");
+        }
+    }
 });
