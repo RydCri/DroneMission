@@ -2,6 +2,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+    background-color: #f6f8fa;
+}
+
 .dropdown {
     position: relative;
 }
@@ -60,7 +65,7 @@
     width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.5);
     display: flex; align-items: center; justify-content: center;
-    z-index: 1000;
+    z-index: 10;
 }
 
 .modal-content {
@@ -103,37 +108,15 @@
     font-size: 2rem;
 }
 
-.your-flights-button {
-    position: absolute;
-    top: 0.5rem; left: 0.5rem;
-    border: none;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-    background: whitesmoke;
-    font-size: 1.2rem;
-    cursor: pointer;
-    color: black!important;
-    font: message-box;
-    transition:
-    box-shadow 2s,
-    background-color 1s
-}
-.your-flights-button:hover {
-    background: orange;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1)
-}
-
-
 .hidden {
-    display: none;
+    display: none!important;
 }
 
 
 .wrapper {
     margin-right: auto;
     margin-left:  auto;
-
     max-width: 960px;
-
     padding-right: 10px;
     padding-left:  10px;
 }
@@ -148,6 +131,8 @@
     display: block;
     margin-bottom: 0.5em;
 }
+
+
 
 .profile-flight {
     display: flex;
