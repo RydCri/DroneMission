@@ -62,7 +62,7 @@
 
 <!-- 👤 Profile Modal -->
   <div id="profile-modal"
-       class="fixed inset-0 bg-opacity-50 z-50 flex justify-center pt-20 hidden duration-100 ease-in-out">
+       class="fixed inset-0 bg-opacity-50 flex justify-center pt-20 hidden duration-100 ease-in-out">
     <div class="bg-gray-900 rounded-xl w-full max-w-lg p-6 transform scale-95 translate-y-4 transition-all duration-300 ease-in-out"
          id="profile-modal-content">
       <button class="close-button" data-modal-target="profile-modal">✖</button>
@@ -72,15 +72,12 @@
         </div>
     </div>
   </div>
-  <div id="flight-modal" class="fixed inset-0 bg-opacity-50 flex justify-center items-start pt-20 hidden duration-300 ease-in-out">
-    <div id="user-flights" class="modal-content">
-
-
-      <div id="flight-modal-content" class="modal-content">
+  <div id="flight-modal" class="fixed inset-0 bg-opacity-50 flex justify-center items-start pt-20 hidden duration-300 ease-in-out z-1">
+      <div id="flight-modal-content" class="modal-content z-50">
+    <div class="flex flex-row"><button class="close-button basis-32" data-modal-target="flight-modal">✖</button> <h2 id="user-flights" class="basis-150 text-xl font-semibold mb-4"></h2></div>
       <!-- Filled by JS -->
     </div>
   </div>
-</div>
 
 <!-- ☁️ Upload Modal -->
 <div id="upload-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
@@ -93,7 +90,7 @@
       <input type="file" name="model" accept=".glb" required />
       <label class="text-sm">NDVI Thumbnail</label>
       <input type="file" name="ndvi" accept="image/png" required />
-      <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">Upload</button>
+      <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 cursor-pointer">Upload</button>
     </form>
   </div>
 </div>
