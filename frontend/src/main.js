@@ -184,6 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
+
     // Register all modals
     ModalManager.register('login-modal');
     ModalManager.register('profile-modal');
