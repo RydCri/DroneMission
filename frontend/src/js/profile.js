@@ -7,39 +7,19 @@ export function setupProfile() {
 
     const profileBtn = document.getElementById('profile-button');
     const profileModal = document.getElementById('profile-modal')
+    const profileModalContent = document.getElementById('profile-modal-content')
     if (profileBtn) {
         profileBtn.addEventListener('click', () => {
-            ModalManager.toggle(profileModal)
-            console.log('Profile btn clicka')
+            ModalManager.toggle('profile-modal')
         });
     }
 
+
     const flightBtn = document.getElementById('flight-button');
-    const flightModal = document.getElementById('flight-modal');
-    const flightModalBtn = document.getElementById('flight-modal-button');
-    const flightModalContent = document.getElementById('flight-modal-content');
     if (flightBtn) {
         flightBtn.addEventListener('click', () => {
-            // flightModal.classList.toggle('hidden')
-            // flightModal.classList.toggle('opacity-100')
-            ModalManager.toggle(flightModal)
-            // flightModalContent.classList.toggle('hidden')
-            // flightModalContent.classList.toggle('opacity-100')
-            // profileModal.classList.toggle('bg-black')
-            ModalManager.toggle(profileModal)
+            ModalManager.toggle('flight-modal')
             console.log('Flight btn clicka')
-        });
-    }
-    if (flightModalBtn) {
-        flightModalBtn.addEventListener('click', () => {
-            // flightModal.classList.toggle('hidden')
-            // flightModal.classList.toggle('opacity-100')
-            ModalManager.toggle(flightModal)
-            // flightModalContent.classList.toggle('hidden')
-            // flightModalContent.classList.toggle('opacity-100')
-            // profileModal.classList.toggle('bg-black')
-            // profileModal.classList.toggle('bg-white')
-            console.log('FlightModalBtn Click')
         });
     }
 
@@ -55,11 +35,12 @@ export function setupProfile() {
         if (!res.ok) return alert('Failed to load flights.');
 
         const { flights } = await res.json();
-        const profileList = document.getElementById('user-flights');
-        profileList.innerHTML = `<div class="flex flex-row"><button class="close-button basis-32" data-modal-target="flight-modal-content">✖</button> <h2 class="basis-150 text-xl font-semibold mb-4">Your Flights</h2></div>`;
-
+        const profileList = document.getElementById('flight-modal-content');
+        if(!profileList){
+            console.log("profileList NULL")
+        }
             const uploadBtn = document.createElement('div')
-            uploadBtn.innerHTML = `<button id="upload-flight-button" class="mt-4 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">Upload New Flight</button>`
+            uploadBtn.innerHTML = `<button id="upload-flight-button" class="mt-4 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 cursor-pointer">Upload New Flight</button>`
         flights.forEach(f => {
             const flightItem = document.createElement('div');
             flightItem.classList.add('profile-flight');
@@ -81,7 +62,7 @@ export function setupProfile() {
             </div>
         `;
 
-            profileList.appendChild(flightItem);
+            profileList.append(flightItem);
         });
             profileList.appendChild(uploadBtn)
     }
