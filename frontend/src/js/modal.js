@@ -47,6 +47,8 @@ export const ModalManager = (() => {
         }
         if (modal.classList.contains('hidden')) {
             modal.classList.remove('hidden');
+            modal.classList.remove('opacity-0');
+            modal.classList.remove('pointer-events-none');
             return;
         }
         if (!modal.classList.contains('hidden')) {
