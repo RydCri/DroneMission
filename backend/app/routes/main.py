@@ -31,33 +31,38 @@ def get_user_flights():
     return jsonify({'flights': user_flights}), 200
 
 
-@main.route('/upload', methods=['POST'])
+@main.route('/flights/upload', methods=['POST'])
 def upload_flight():
-    from flask import current_app, request, session
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
 
-    title = request.form['title']
-    model_file = request.files['model']
-    ndvi_file = request.files['ndvi']
+    user_id = session['user_id']
+    title = request.form.get('title')
+    model = request.files.get('model')
+    ndvi = request.files.get('ndvi')
 
-    filename_model = secure_filename(model_file.filename)
-    filename_ndvi = secure_filename(ndvi_file.filename)
+    if not title or not model or not ndvi:
+        return jsonify({'error': 'Missing required fields'}), 400
 
-    model_path = os.path.join(current_app.config['UPLOAD_FOLDER_MODELS'], filename_model)
-    ndvi_path = os.path.join(current_app.config['UPLOAD_FOLDER_SCANS'], filename_ndvi)
+    model_filename = secure_filename(model.filename)
+    ndvi_filename = secure_filename(ndvi.filename)
 
-    model_file.save(model_path)
-    ndvi_file.save(ndvi_path)
+    model_path = os.path.join('static/models', model_filename)
+    ndvi_path = os.path.join('static/scans', ndvi_filename)
 
-    flight = Flight(
+    model.save(model_path)
+    ndvi.save(ndvi_path)
+
+    new_flight = Flight(
+        user_id=user_id,
         title=title,
-        glb_path=f'/models/{filename_model}',
-        ndvi_path=f'/scans/{filename_ndvi}',
-        user_id=session.get('user_id', 1)  # TODO: Replace with real user session
+        glb_path='/' + model_path,
+        ndvi_path='/' + ndvi_path
     )
-    db.session.add(flight)
+    db.session.add(new_flight)
     db.session.commit()
 
-    return jsonify({'message': 'Flight uploaded successfully'}), 201
+    return jsonify({'message': 'Upload successful'})
 
 @main.route('/flights/<int:flight_id>', methods=['PUT'])
 def update_flight(flight_id):
