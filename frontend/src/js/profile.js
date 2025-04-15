@@ -1,51 +1,30 @@
 import {ModalManager} from "./modal.js";
+import {checkLoginStatus} from "./auth.js";
 
-export function setupProfile() {
-    document.addEventListener('user-logged-in', () => {
-        loadProfile();
+async function loadProfile() {
+    console.log('Fetching User Flights');
+
+    const res = await fetch('http://127.0.0.1:5000/api/flights/user', {
+        method: 'GET',
+        credentials: 'include'
     });
 
-    const profileBtn = document.getElementById('profile-button');
-    const profileModal = document.getElementById('profile-modal')
-    const profileModalContent = document.getElementById('profile-modal-content')
-    if (profileBtn) {
-        profileBtn.addEventListener('click', () => {
-            ModalManager.toggle('profile-modal')
-        });
+    if (!res.ok) return alert('Failed to load flights.');
+
+    const { flights } = await res.json();
+    const profileList = document.getElementById('flight-modal-content');
+    if(!profileList){
+        console.log("profileList NULL")
     }
+    profileList.innerHTML = ''
+    profileList.innerHTML += `<div class="flex flex-row"><button class="close-button basis-32" data-modal-target="flight-modal">✖</button> <h2 id="user-flights" class="basis-150 text-xl font-semibold mb-4"></h2></div>`
+    const uploadDiv = document.createElement('div')
+    uploadDiv.innerHTML = `<button id="upload-flight-button" class="mt-4 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 cursor-pointer">Upload New Flight</button>`
+    flights.forEach(f => {
+        const flightItem = document.createElement('div');
+        flightItem.classList.add('profile-flight');
 
-
-    const flightBtn = document.getElementById('flight-button');
-    if (flightBtn) {
-        flightBtn.addEventListener('click', () => {
-            ModalManager.toggle('flight-modal')
-            console.log('Flight btn clicka')
-        });
-    }
-
-
-    async function loadProfile() {
-        console.log('Fetching User Flights');
-
-        const res = await fetch('http://127.0.0.1:5000/api/flights/user', {
-            method: 'GET',
-            credentials: 'include'
-        });
-
-        if (!res.ok) return alert('Failed to load flights.');
-
-        const { flights } = await res.json();
-        const profileList = document.getElementById('flight-modal-content');
-        if(!profileList){
-            console.log("profileList NULL")
-        }
-            const uploadBtn = document.createElement('div')
-            uploadBtn.innerHTML = `<button id="upload-flight-button" class="mt-4 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 cursor-pointer">Upload New Flight</button>`
-        flights.forEach(f => {
-            const flightItem = document.createElement('div');
-            flightItem.classList.add('profile-flight');
-
-            flightItem.innerHTML = `
+        flightItem.innerHTML = `
             <div class="flight-info">
                 <img class="thumbnail" src="${f.ndviPath}" alt="${f.title} thumbnail">
                 <div>
@@ -62,30 +41,47 @@ export function setupProfile() {
             </div>
         `;
 
-            profileList.append(flightItem);
+        profileList.append(flightItem);
+    });
+    profileList.appendChild(uploadDiv)
+    const uploadBtn = document.getElementById('upload-flight-button');
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', () => {
+            ModalManager.toggle('upload-modal')
         });
-            profileList.appendChild(uploadBtn)
+    }
+    const userFlights = document.getElementById('user-flights')
+    if(!userFlights) return;
+
+    await checkLoginStatus()
+
+
+}
+
+
+export function setupProfile() {
+    document.addEventListener('user-logged-in', () => {
+        console.log('Profile fetched')
+        loadProfile();
+    });
+
+    const profileBtn = document.getElementById('profile-button');
+    if (profileBtn) {
+        profileBtn.addEventListener('click', () => {
+            ModalManager.toggle('profile-modal')
+        });
     }
 
-// Delete button
-    document.querySelectorAll('.delete-flight').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const id = btn.dataset.id;
-            const confirmed = confirm('Are you sure you want to delete this flight?');
-            if (!confirmed) return;
 
-            const res = await fetch(`http://127.0.0.1:5000/api/flights/${id}`, {
-                method: 'DELETE',
-                credentials: 'include'
-            });
-
-            if (res.ok) {
-                loadProfile(); // Refresh
-            } else {
-                alert('Failed to delete flight');
-            }
+    const flightBtn = document.getElementById('flight-button');
+    if (flightBtn) {
+        flightBtn.addEventListener('click', () => {
+            ModalManager.toggle('flight-modal')
+            console.log('Flight btn clicka')
         });
-    });
+    }
+
+
 
 // Edit button
     document.querySelectorAll('.edit-flight').forEach(btn => {
@@ -114,7 +110,7 @@ export function setupProfile() {
 
     // Profile Modal Dropdowns
 
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', async (e) => {
         // Close all dropdowns if clicking outside
         document.querySelectorAll('.dropdown').forEach(d => {
             if (!d.contains(e.target)) d.classList.remove('show');
@@ -133,7 +129,24 @@ export function setupProfile() {
         }
         if (e.target.classList.contains('delete-flight')) {
             const id = getFlightIdFromElement(e.target);
-            console.log('Delete flight', id);
+            const confirmed = confirm('Are you sure you want to delete this flight?');
+            if (!confirmed) return;
+
+            try {
+                const res = await fetch(`http://127.0.0.1:5000/api/flights/${id}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+
+                if (res.ok) {
+                    loadProfile();
+                } else {
+                    alert('Failed to delete flight.');
+                }
+            } catch (err) {
+                console.error('Delete failed:', err);
+                alert('Something went wrong while deleting.');
+            }
         }
     });
 
@@ -171,11 +184,38 @@ export function setupProfile() {
 
         if (res.ok) {
             ModalManager.hide('edit-modal');
-            loadProfile();
+            await loadProfile();
         } else {
             alert('Update failed');
         }
     });
 
 
+}
+
+export function setupUploadForm() {
+    const uploadForm = document.getElementById('upload-form');
+
+    if (!uploadForm) return;
+
+    uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(uploadForm);
+
+        const res = await fetch('http://127.0.0.1:5000/api/flights/upload', {
+            method: 'POST',
+            credentials: 'include',
+            body: formData
+        });
+
+        if (res.ok) {
+            alert('Flight uploaded successfully!');
+            ModalManager.hide('upload-modal');
+            uploadForm.reset();
+            await loadProfile();
+        } else {
+            alert('Upload failed.');
+        }
+    });
 }
