@@ -6,6 +6,7 @@ import {showToast} from './toast'
 async function loadProfile() {
     console.log('Fetching User Flights');
 
+    const backend = 'http://127.0.0.1:5000'
     const res = await fetch('http://127.0.0.1:5000/api/flights/user', {
         method: 'GET',
         credentials: 'include'
@@ -28,7 +29,7 @@ async function loadProfile() {
 
         flightItem.innerHTML = `
             <div class="flight-info">
-                <img class="thumbnail" src="${f.ndviPath}" alt="${f.title}">
+                <img class="thumbnail" src="${backend}${f.ndviPath}" alt="${f.title}">
                 <div>
                     <div class="flight-title">${f.title}</div>
                     <div class="flight-meta">ID: ${f.id}</div>
