@@ -1,5 +1,7 @@
 import {ModalManager} from "./modal.js";
 import {checkLoginStatus} from "./auth.js";
+import {showToast} from './toast'
+
 
 async function loadProfile() {
     console.log('Fetching User Flights');
@@ -26,7 +28,7 @@ async function loadProfile() {
 
         flightItem.innerHTML = `
             <div class="flight-info">
-                <img class="thumbnail" src="${f.ndviPath}" alt="${f.title} thumbnail">
+                <img class="thumbnail" src="${f.ndviPath}" alt="${f.title}">
                 <div>
                     <div class="flight-title">${f.title}</div>
                     <div class="flight-meta">ID: ${f.id}</div>
@@ -80,33 +82,37 @@ export function setupProfile() {
             console.log('Flight btn clicka')
         });
     }
+// edit button logic, TODO: user can input old values if they want
+        document.querySelectorAll('.edit-flight').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.dataset.id;
+                const currentTitle = btn.closest('.profile-flight').querySelector('.flight-title').innerText;
+                const newTitle = prompt('Enter a new title for the flight:', currentTitle);
+                if (!newTitle) return;
 
+                if (newTitle === currentTitle) {
+                    showToast("Please Choose a new Title!",'error')
+                    return;
+                }
+                const res = await fetch(`http://127.0.0.1:5000/api/flights/${id}`, {
+                    method: 'PUT',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({title: newTitle})
+                });
 
-
-// Edit button
-    document.querySelectorAll('.edit-flight').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const id = btn.dataset.id;
-            const currentTitle = btn.closest('.profile-flight').querySelector('.flight-title').innerText;
-            const newTitle = prompt('Enter a new title for the flight:', currentTitle);
-            if (!newTitle || newTitle === currentTitle) return;
-
-            const res = await fetch(`http://127.0.0.1:5000/api/flights/${id}`, {
-                method: 'PUT',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ title: newTitle })
+                if (res.ok) {
+                    loadProfile(); // Refresh
+                } else {
+                    showToast('Failed to update flight','error');
+                }
             });
-
-            if (res.ok) {
-                loadProfile(); // Refresh
-            } else {
-                alert('Failed to update flight');
-            }
         });
-    });
+
+
+
 
     // Profile Modal Dropdowns
 
@@ -122,7 +128,7 @@ export function setupProfile() {
             dropdown.classList.toggle('show');
         }
 
-        // Handle edit/delete (stubs for now)
+        // Handle edit/delete
         if (e.target.classList.contains('edit-flight')) {
             const id = getFlightIdFromElement(e.target);
             console.log('Edit flight', id);
@@ -140,12 +146,13 @@ export function setupProfile() {
 
                 if (res.ok) {
                     loadProfile();
+                    showToast(`Flight: ${id} deleted`,'success');
                 } else {
-                    alert('Failed to delete flight.');
+                    showToast('Failed to delete flight.','error');
                 }
             } catch (err) {
                 console.error('Delete failed:', err);
-                alert('Something went wrong while deleting.');
+                showToast(`Something went wrong while deleting.${err}`,'error');
             }
         }
     });
@@ -186,7 +193,7 @@ export function setupProfile() {
             ModalManager.hide('edit-modal');
             await loadProfile();
         } else {
-            alert('Update failed');
+            showToast('Update failed','error');
         }
     });
 
@@ -210,12 +217,13 @@ export function setupUploadForm() {
         });
 
         if (res.ok) {
-            alert('Flight uploaded successfully!');
+            loadProfile();
+            showToast('Flight uploaded successfully!','success');
             ModalManager.hide('upload-modal');
+
             uploadForm.reset();
-            await loadProfile();
         } else {
-            alert('Upload failed.');
+            showToast('Upload failed.','error');
         }
     });
 }
