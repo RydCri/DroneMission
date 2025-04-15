@@ -6,7 +6,7 @@ import { ModalManager } from './js/modal.js';
 import { showProfileModal } from './ui';
 import { setupAuth } from './js/auth.js';
 import { setupFlights } from './js/flights.js';
-import { setupProfile } from './js/profile.js';
+import { setupProfile} from './js/profile.js';
 
 
 
