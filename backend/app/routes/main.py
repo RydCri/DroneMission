@@ -1,5 +1,5 @@
 import os
-from flask import send_from_directory, request
+from flask import send_from_directory, request, current_app
 from werkzeug.utils import secure_filename
 from flask import Blueprint, jsonify, session
 from ..models import Flight, User
@@ -11,7 +11,6 @@ main = Blueprint('main', __name__)
 @main.route('/flights/user', methods=['GET'])
 def get_user_flights():
     user_id = session.get('user_id')
-    print("Session ID: ", user_id)
     if not user_id:
         return jsonify({'error': 'Unauthorized'}), 401
 
@@ -19,12 +18,13 @@ def get_user_flights():
     if not user:
         return jsonify({'error': 'User not found'}), 404
 
+    # Flights retrieved from upload path
     user_flights = [
         {
             'id': flight.id,
             'title': flight.title,
-            'glbPath': flight.glb_path,
-            'ndviPath': flight.ndvi_path
+            'glbPath': f"/uploads/models/{os.path.basename(flight.glb_path)}",
+            'ndviPath': f"/uploads/scans/{os.path.basename(flight.ndvi_path)}"
         } for flight in user.flights
     ]
 
@@ -44,11 +44,20 @@ def upload_flight():
     if not title or not model or not ndvi:
         return jsonify({'error': 'Missing required fields'}), 400
 
+    # Secure filenames
     model_filename = secure_filename(model.filename)
     ndvi_filename = secure_filename(ndvi.filename)
 
-    model_path = os.path.join('static/models', model_filename)
-    ndvi_path = os.path.join('static/scans', ndvi_filename)
+    # Build paths using UPLOAD_FOLDER
+    upload_folder = current_app.config['UPLOAD_FOLDER']
+    model_dir = os.path.join(upload_folder, 'models')
+    ndvi_dir = os.path.join(upload_folder, 'scans')
+
+    os.makedirs(model_dir, exist_ok=True)
+    os.makedirs(ndvi_dir, exist_ok=True)
+
+    model_path = os.path.join(model_dir, model_filename)
+    ndvi_path = os.path.join(ndvi_dir, ndvi_filename)
 
     model.save(model_path)
     ndvi.save(ndvi_path)
@@ -56,14 +65,13 @@ def upload_flight():
     new_flight = Flight(
         user_id=user_id,
         title=title,
-        glb_path='/' + model_path,
-        ndvi_path='/' + ndvi_path
+        glb_path=model_path,
+        ndvi_path=ndvi_path
     )
     db.session.add(new_flight)
     db.session.commit()
 
     return jsonify({'message': 'Upload successful'})
-
 @main.route('/flights/<int:flight_id>', methods=['PUT'])
 def update_flight(flight_id):
     user_id = session.get('user_id')
