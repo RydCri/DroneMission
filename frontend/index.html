@@ -97,13 +97,20 @@
 
 
 
-
 <!--<div id="app"></div>-->
 <!--<select name="missions" id="missions">-->
 <!--</select>-->
 <!--<label for="missions">Select Flight</label>-->
 <p id="loading-progress"></p>
 <div id="container"></div>
+<!--Toast message box-->
+
+  <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded-lg shadow-md text-white bg-green-600 hidden z-1000 transition-opacity duration-300 w-full max-w-xs">
+    <span id="toast-message">I'm a placeholder for Toast</span>
+    <div id="toast-progress" class="h-1 bg-white mt-2 rounded transition-all duration-[3000ms] w-full"></div>
+  </div>
+
+<!--  Toast-->
 </div>
 <script type="module" src="/src/js/modal.js"></script>
 <script type="module" src="/src/main.js"></script>
