@@ -1,5 +1,6 @@
 import { ModalManager } from './modal.js';
 import { setupUploadForm } from "./profile.js";
+import {showToast} from "./toast.js";
 
 export function setupAuth() {
     const loginForm = document.getElementById('login-form');
@@ -22,9 +23,10 @@ export function setupAuth() {
             ModalManager.hide('login-modal');
             document.dispatchEvent(new CustomEvent('user-logged-in'));
             updateAuthUI(true);
+            showToast(`${username} logged in`, 'success')
 
         } else {
-            alert('Login failed.');
+            showToast('Login failed.','error');
         }
     });
 
@@ -53,7 +55,6 @@ export async function checkLoginStatus() {
         credentials: 'include'
     });
     const data = await res.json();
-    console.log(data)
     const userInfo = document.getElementById('user-info')
     let user_icon;
     if (!data.user_icon) {
