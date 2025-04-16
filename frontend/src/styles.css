@@ -90,6 +90,7 @@ body {
 }
 
 .close-button {
+    display: flow;
     position: absolute;
     top: 0.5rem; right: 0.5rem;
     border: none;
