@@ -23,8 +23,8 @@ def get_user_flights():
         {
             'id': flight.id,
             'title': flight.title,
-            'glbPath': f"/uploads/models/{os.path.basename(flight.glb_path)}",
-            'ndviPath': f"/uploads/scans/{os.path.basename(flight.ndvi_path)}"
+            'glbPath': f"/uploads/user_{user_id}/models/{os.path.basename(flight.glb_path)}",
+            'ndviPath': f"/uploads/user_{user_id}/scans/{os.path.basename(flight.ndvi_path)}"
         } for flight in user.flights
     ]
 
@@ -44,14 +44,13 @@ def upload_flight():
     if not title or not model or not ndvi:
         return jsonify({'error': 'Missing required fields'}), 400
 
-    # Secure filenames
     model_filename = secure_filename(model.filename)
     ndvi_filename = secure_filename(ndvi.filename)
 
-    # Build paths using UPLOAD_FOLDER
-    upload_folder = current_app.config['UPLOAD_FOLDER']
-    model_dir = os.path.join(upload_folder, 'models')
-    ndvi_dir = os.path.join(upload_folder, 'scans')
+    # Construct user-specific directories
+    user_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], f'user_{user_id}')
+    model_dir = os.path.join(user_folder, 'models')
+    ndvi_dir = os.path.join(user_folder, 'scans')
 
     os.makedirs(model_dir, exist_ok=True)
     os.makedirs(ndvi_dir, exist_ok=True)
@@ -72,6 +71,8 @@ def upload_flight():
     db.session.commit()
 
     return jsonify({'message': 'Upload successful'})
+
+
 @main.route('/flights/<int:flight_id>', methods=['PUT'])
 def update_flight(flight_id):
     user_id = session.get('user_id')
