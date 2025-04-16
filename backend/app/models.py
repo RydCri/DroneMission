@@ -20,7 +20,12 @@ class User(db.Model):
 
 class Flight(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(150), nullable=False)
-    glb_path = db.Column(db.String(200), nullable=True)
-    ndvi_path = db.Column(db.String(200), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    title = db.Column(db.String(120))
+    glb_path = db.Column(db.String(255))
+    scan_path = db.Column(db.String(255))
+    original_model_name = db.Column(db.String(255))
+    original_scan_name = db.Column(db.String(255))
+    mime_model = db.Column(db.String(64))
+    mime_scan = db.Column(db.String(64))
+    uploaded_at = db.Column(db.DateTime)
