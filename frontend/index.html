@@ -62,11 +62,12 @@
 
 <!-- 👤 Profile Modal -->
   <div id="profile-modal"
-       class="fixed inset-0 opacity-80 bg-black flex justify-center pt-20 hidden duration-100 ease-in-out">
+       class="fixed inset-0 flex justify-center pt-20 hidden duration-100 ease-in-out">
     <div class="bg-gray-900 rounded-xl w-full max-w-lg p-6 transform scale-95 translate-y-4 transition-all duration-[3000ms] ease-in-out"
          id="profile-modal-content">
       <button class="close-button" data-modal-target="profile-modal">✖</button>
     <button id="flight-button" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 cursor-pointer">Your Flights</button>
+      <button id="pin-button" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 cursor-pointer">Your Pins</button>
         <div id="user-info" class="mb-4">
           <!-- Username, maybe avatar etc -->
         </div>
@@ -74,6 +75,11 @@
   </div>
   <div id="flight-modal" class="fixed inset-0 bg-transparent flex justify-center items-start pt-20 hidden transition-all duration-[3000ms] ease-in-out z-1">
       <div id="flight-modal-content" class="modal-content z-50 h-96 overflow-y-auto">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+  <div id="pin-modal" class="fixed inset-0 bg-transparent flex justify-center items-start pt-20 z-50 hidden transition-all duration-[3000ms] ease-in-out z-1">
+    <div id="pin-modal-content" class="modal-content z-50 h-96 overflow-y-auto">
       <!-- Filled by JS -->
     </div>
   </div>
@@ -94,6 +100,33 @@
   </div>
 </div>
 
+<!--Pin upload modal-->
+  <div id="pin-upload-modal" class="max-w-xl mx-auto p-6 bg-white rounded-2xl shadow-lg mt-10 hidden">
+    <div class="rounded-xl w-full max-w-lg p-6 transform translate-y-4 ">
+      <button class="close-button basis-32 relative" data-modal-target="pin-upload-modal">✖</button>
+    <h2 class="text-2xl font-bold mb-4">Publish a Pin</h2>
+    <form id="pinForm" enctype="multipart/form-data" class="space-y-4">
+      <input type="text" name="title" placeholder="Title" required class="w-full p-2 border rounded"/>
+
+      <textarea name="description" rows="4" placeholder="Description" class="w-full p-2 border rounded"></textarea>
+      <label>3D Model (.glb)</label>
+      <input type="file" name="model" accept=".glb" required class="w-full border p-2 rounded"/>
+      <label>Scans</label>
+      <input type="file" name="images" accept="image/*" multiple class="w-full border p-2 rounded"/>
+
+      <input type="text" name="tags" placeholder="Tags (comma-separated)" class="w-full p-2 border rounded"/>
+
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer">Publish</button>
+    </form>
+    </div>
+  </div>
+
+  <!--  Pin modal-->
+
+
+  <section id="pin-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+    <!-- Pins will be injected here by JS -->
+  </section>
 
 
 
