@@ -5,7 +5,7 @@ from .extensions import db
 from .routes import register_routes
 from .routes.auth import auth as auth_blueprint
 from .routes.main import main as main_blueprint
-
+from .routes.pins import pins as pins_blueprint
 
 def create_app():
     app = Flask(__name__)
@@ -36,6 +36,7 @@ def create_app():
     # Register Blueprints
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
     app.register_blueprint(main_blueprint, url_prefix='/api')
+    app.register_blueprint(pins_blueprint, url_prefix='/pins')
 
     # Serve uploaded files
     @app.route('/uploads/<path:filename>')
