@@ -1,8 +1,9 @@
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import send_from_directory, request, current_app, abort
 from flask import Blueprint, jsonify, session
+from flask_login import login_required
 from ..models import Flight, User
 from ..extensions import db
 
@@ -66,7 +67,7 @@ def upload_flight():
     model.save(model_path)
     scan.save(scan_path)
 
-    timestamp = datetime.utcnow()
+    timestamp = datetime.now(timezone.utc)
 
     # Store relative URLs for serving
     rel_model_path = f"/uploads/user_{user_id}/models/{model_uuid}"
@@ -120,6 +121,8 @@ def serve_user_file(file_type, flight_id):
     filename = os.path.basename(full_path)
 
     return send_from_directory(directory, filename)
+
+
 @main.route('/flights/<int:flight_id>', methods=['PUT'])
 def update_flight(flight_id):
     user_id = session.get('user_id')
@@ -165,3 +168,9 @@ def get_data():
 def get_missions():
     return send_from_directory(os.getcwd(), './static/missions.json')
 
+@main.route('/download/<path:filename>')
+@login_required
+def secure_download(filename):
+    user_id = session.get('user_id')
+    safe_path = os.path.join(current_app.config['UPLOAD_FOLDER'], f"user_{user_id}")
+    return send_from_directory(safe_path, filename, as_attachment=True)
