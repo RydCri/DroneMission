@@ -12,8 +12,4 @@ class Config:
     ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
     ALLOWED_GLB_EXTENSION = {'glb'}
 
-#TODO: may be added to future utils.py
-def allowed_file(filename, allowed_extensions):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
-
 # db.init_app(app)
