@@ -29,7 +29,7 @@ async function loadProfile() {
 
         flightItem.innerHTML = `
             <div class="flight-info">
-                <img class="thumbnail" src="${backend}${f.ndviPath}" alt="${f.title}">
+                <img class="thumbnail" src="${backend}${f.scanPath}" alt="${f.title}">
                 <div>
                     <div class="flight-title">${f.title}</div>
                     <div class="flight-meta">ID: ${f.id}</div>
