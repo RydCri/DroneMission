@@ -28,7 +28,8 @@ def create_app():
          supports_credentials=True,
          resources={
              r"/auth/*": {"origins": "http://localhost:5173"},
-             r"/api/*": {"origins": "http://localhost:5173"}
+             r"/api/*": {"origins": "http://localhost:5173"},
+             r"/pins/*": {"origins": "http://localhost:5173"},
          }
          )
     db.init_app(app)
