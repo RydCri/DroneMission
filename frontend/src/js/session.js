@@ -1,5 +1,6 @@
+const backend = 'http://127.0.0.1:5000'
 export async function fetchSession() {
-    const res = await fetch('http://127.0.0.1:5000/auth/session', {
+    const res = await fetch(`${backend}/auth/session`, {
         credentials: 'include'
     });
 
@@ -16,7 +17,7 @@ export async function fetchSession() {
 
 
 export async function logoutUser() {
-    const res = await fetch('http://127.0.0.1:5000/auth/logout', {
+    const res = await fetch(`${backend}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
     });
