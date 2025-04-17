@@ -1,7 +1,7 @@
 import os
 import uuid
 from datetime import datetime, timezone
-from flask import current_app, Blueprint, request, jsonify, session, current_app
+from flask import Blueprint, request, jsonify, session, current_app
 from ..models import Pin, PinImage, Tag
 from ..extensions import db
 from werkzeug.utils import secure_filename
@@ -29,7 +29,8 @@ def get_pins():
             'images': [
                 f"/uploads/user_{pin.user.id}/images/{os.path.basename(img.image_path)}" for img in pin.images
             ],
-            'tags': [tag.name for tag in pin.tags]
+            'tags': [tag.name for tag in pin.tags],
+            'likes': pin.likes
         })
 
     return jsonify({
@@ -115,3 +116,31 @@ def upload_pin():
     db.session.commit()
 
     return jsonify({'message': 'Pin uploaded successfully', 'pin_id': new_pin.id}), 201
+
+
+@pins.route('/user', methods=['GET'])
+def get_user_pins():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    # Use base filename to construct public paths
+    pins_query = Pin.query.get(user_id)
+    pins_query = pins_query.query.order_by(Pin.created_at.desc())
+    user_pins = []
+    for pin in pins_query:
+        user_pins.append({
+            'id': pin.id,
+            'title': pin.title,
+            'description': pin.description,
+            'username': pin.user.username,
+            'created_at': pin.created_at.isoformat(),
+            'glbPath': f"/uploads/user_{pin.user.id}/models/{os.path.basename(pin.glb_path)}",
+            'images': [
+                f"/uploads/user_{pin.user.id}/images/{os.path.basename(img.image_path)}" for img in pin.images
+            ],
+            'tags': [tag.name for tag in pin.tags]
+        })
+
+    return jsonify({'pins': user_pins}), 200
+
