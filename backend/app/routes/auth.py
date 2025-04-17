@@ -58,6 +58,7 @@ def session_status():
 @auth.route('/logout', methods=['POST'])
 def logout():
     session.pop('user_id', None)
+    session.clear()
     return jsonify({'message': 'Logged out successfully'}), 200
 
 
