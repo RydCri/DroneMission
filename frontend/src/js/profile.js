@@ -1,7 +1,7 @@
 import {ModalManager} from "./modal.js";
 import {checkLoginStatus} from "./auth.js";
 import {showToast} from './toast'
-import {fetchSession} from "./session.js";
+import {fetchSession, logoutUser} from "./session.js";
 
 (async () => {
     const session = await fetchSession();
@@ -152,14 +152,10 @@ export function setupProfile() {
     }
 
     const logoutBtn = document.getElementById('logout-button');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-           const res = fetch(`${backend}/auth/logout`, {
-               method: 'POST',
-               credentials: 'include'
-           })
-            if(res.ok)
-            ModalManager.toggle('profile-modal')
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    await logoutUser();
+
         });
     }
 
