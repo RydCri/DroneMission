@@ -21,16 +21,14 @@ export async function fetchSession() {
 export async function logoutUser() {
     const res = await fetch(`${backend}/auth/logout`, {
         method: 'POST',
-        credentials: 'include',
+        credentials: 'include'
     });
 
     if (res.ok) {
-        window.currentUserId = null;
-        window.currentUsername = null;
         console.log('User logged out');
-        return true;
+        window.location.href = '/';
     } else {
         console.error('Logout failed');
-        return false;
     }
 }
+
