@@ -1,6 +1,6 @@
 const backend = 'http://127.0.0.1:5000'
 
-// Session data only being used for simple URI to frontend implementation, only cookie data necessary for now
+// Session data only being used for API to frontend implementation, only cookie data necessary for now
 export async function fetchSession() {
     const res = await fetch(`${backend}/auth/session`, {
         credentials: 'include'
