@@ -23,12 +23,12 @@ export async function loadPins() {
         <p class="text-sm text-gray-600">${pin.description || ''}</p>
       </div>
       <div class="carousel-wrapper w-full overflow-x-auto flex gap-2 px-4">
-        ${pin.images.map(img => `<img src="${img}" class="h-24 rounded object-cover" alt="${img}">`).join('')}
+        ${pin.images.map(img => `<img src="${backend}${img}" class="pin-thumbnail h-24 rounded object-cover" alt="${backend}${img}">`)}
       </div>
       <div class="px-4 pb-4 flex flex-col gap-1 text-sm text-gray-600">
         <div><strong>By:</strong> ${pin.username}</div>
         <div><strong>Tags:</strong> ${pin.tags.join(', ')}</div>
-        <div><strong>Likes:</strong> ❤️ ${pin.likes}</div>
+        <div> ❤️ ${pin.likes}</div>
       </div>
     `;
 
