@@ -46,19 +46,19 @@ def login():
         return jsonify({"error": "Invalid username or password"}), 401
 
 
-@auth.route('/logout', methods=['POST'])
-def logout():
-    session.pop('user_id', None)
-    return jsonify({'message': 'Logged out'})
-
-
 @auth.route('/session')
 def session_status():
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
         print("Get Session Called")
-        return jsonify({'username': user.username})
+        return jsonify({'username': user.username, 'user_id': user.id})
     return jsonify({'message': 'Not logged in'}), 401
+
+
+@auth.route('/logout', methods=['POST'])
+def logout():
+    session.pop('user_id', None)
+    return jsonify({'message': 'Logged out successfully'}), 200
 
 
 @auth.route("/profile")
