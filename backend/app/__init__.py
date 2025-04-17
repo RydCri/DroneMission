@@ -1,6 +1,8 @@
 import os
-from flask import Flask, current_app, send_from_directory
+from flask import Flask, send_from_directory
 from flask_cors import CORS
+from flask_migrate import Migrate
+
 from .extensions import db
 from .routes import register_routes
 from .routes.auth import auth as auth_blueprint
@@ -14,9 +16,11 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///flights.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'uploads')
+    app.config.from_object('config.Config')
 
 
-    #TODO: Change this for prod
+
+#TODO: Change this for prod
     app.config.update(
         SESSION_COOKIE_SAMESITE='None',
         SESSION_COOKIE_SECURE=True  # True for HTTPS
@@ -32,8 +36,8 @@ def create_app():
              r"/pins/*": {"origins": "http://localhost:5173"},
          }
          )
+    migrate = Migrate(app, db)
     db.init_app(app)
-
     # Register Blueprints
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
     app.register_blueprint(main_blueprint, url_prefix='/api')
