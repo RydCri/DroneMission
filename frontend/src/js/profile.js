@@ -76,6 +76,14 @@ async function loadUserPins() {
     });
 
     pinList.appendChild(uploadDiv);
+    const uploadPinBtn = document.getElementById('upload-pin-button')
+    if (uploadPinBtn) {
+        uploadPinBtn.addEventListener('click', () => {
+            ModalManager.toggle('profile-modal')
+            ModalManager.toggle('pin-modal')
+            ModalManager.toggle('pin-upload-modal');
+        });
+    }
 
 }
 
@@ -155,6 +163,7 @@ export function setupProfile() {
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', async () => {
                     await logoutUser();
+                    showToast('Logged out Successfully, Refreshing...', 'success')
 
         });
     }
@@ -167,19 +176,15 @@ export function setupProfile() {
     }
 
     // If user has pins, show user's pin modal, else 'Your Pins' button shows upload-pin-form
-    const uploadPinBtn = document.getElementById('upload-pin-button');
-    if (uploadPinBtn) {
-        uploadPinBtn.addEventListener('click', () => {
-            ModalManager.toggle('pin-modal-content');
+        const pinBtn = document.getElementById('pin-button');
+    if (pinBtn) {
+        pinBtn.addEventListener('click', () => {
+            ModalManager.toggle('pin-modal');
         });
     }
-    else  {
-    const uploadPinBtn = document.getElementById('pin-button');
-        uploadPinBtn.addEventListener('click', () => {
-            ModalManager.toggle('pin-upload-modal');
-            ModalManager.toggle('profile-modal')
-        });
-    }
+
+
+
 // edit button logic
         document.querySelectorAll('.edit-flight').forEach(btn => {
             btn.addEventListener('click', async () => {
