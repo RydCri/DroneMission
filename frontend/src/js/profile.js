@@ -1,13 +1,88 @@
 import {ModalManager} from "./modal.js";
 import {checkLoginStatus} from "./auth.js";
 import {showToast} from './toast'
+import {fetchSession} from "./session.js";
 
+(async () => {
+    const session = await fetchSession();
+    if (!session) return;
+
+    console.log('User:', session.username, 'ID:', session.user_id);
+    // window.currentUserId
+})();
+
+const backend = 'http://127.0.0.1:5000'
+async function loadUserPins() {
+    console.log('Fetching User Pins');
+
+    const res = await fetch(`${backend}/pins/user`, {
+        method: 'GET',
+        credentials: 'include'
+    });
+
+    if (!res.ok) {
+        showToast('No User pins.','error');
+        return;
+    }
+
+    const { pins } = await res.json();
+    const pinList = document.getElementById('pin-modal-content');
+
+    if (!pinList) {
+        console.warn("pinList NULL");
+        return;
+    }
+
+    pinList.innerHTML = '';
+    pinList.innerHTML += `
+        <div class="flex flex-row">
+            <button class="close-button basis-32" data-modal-target="pin-modal">✖</button>
+            <h2 class="basis-150 text-xl font-semibold mb-4">Your Pins</h2>
+        </div>
+    `;
+
+    const uploadDiv = document.createElement('div');
+    uploadDiv.innerHTML = `
+        <button id="upload-pin-button" class="mt-4 w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700 cursor-pointer">Publish New Pin</button>
+    `;
+
+    if (pins)
+    pins.forEach(pin => {
+        const pinItem = document.createElement('div');
+        pinItem.classList.add('profile-pin');
+
+        // Render the first image if available
+        const firstImage = pin.images && pin.images.length > 0 ? `${backend}${pin.images[0]}` : '/user_icon.png';
+
+        pinItem.innerHTML = `
+            <div class="pin-info flex items-center space-x-4">
+                <img class="w-24 h-24 object-cover rounded" src="${firstImage}" alt="${pin.title}">
+                <div class="flex-1">
+                    <div class="text-lg font-semibold">${pin.title}</div>
+                    <div class="text-sm text-gray-600">${new Date(pin.created_at).toLocaleString()}</div>
+                    <div class="text-sm text-gray-500">ID: ${pin.id}</div>
+                </div>
+            </div>
+            <div class="dropdown mt-2">
+                <button class="dropdown-toggle">⋯</button>
+                <div class="dropdown-menu">
+                    <button class="edit-pin" data-id="${pin.id}">Edit</button>
+                    <button class="delete-pin" data-id="${pin.id}">Delete</button>
+                </div>
+            </div>
+        `;
+
+        pinList.append(pinItem);
+    });
+
+    pinList.appendChild(uploadDiv);
+
+}
 
 async function loadProfile() {
     console.log('Fetching User Flights');
 
-    const backend = 'http://127.0.0.1:5000'
-    const res = await fetch('http://127.0.0.1:5000/api/flights/user', {
+    const res = await fetch(`${backend}/api/flights/user`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -53,12 +128,13 @@ async function loadProfile() {
             ModalManager.toggle('upload-modal')
         });
     }
+
     const userFlights = document.getElementById('user-flights')
     if(!userFlights) return;
 
     await checkLoginStatus()
 
-
+    loadUserPins()
 }
 
 
@@ -75,15 +151,40 @@ export function setupProfile() {
         });
     }
 
+    const logoutBtn = document.getElementById('logout-button');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+           const res = fetch(`${backend}/auth/logout`, {
+               method: 'POST',
+               credentials: 'include'
+           })
+            if(res.ok)
+            ModalManager.toggle('profile-modal')
+        });
+    }
 
     const flightBtn = document.getElementById('flight-button');
     if (flightBtn) {
         flightBtn.addEventListener('click', () => {
             ModalManager.toggle('flight-modal')
-            console.log('Flight btn clicka')
         });
     }
-// edit button logic, TODO: user can input old values if they want
+
+    // If user has pins, show user's pin modal, else 'Your Pins' button shows upload-pin-form
+    const uploadPinBtn = document.getElementById('upload-pin-button');
+    if (uploadPinBtn) {
+        uploadPinBtn.addEventListener('click', () => {
+            ModalManager.toggle('pin-modal-content');
+        });
+    }
+    else  {
+    const uploadPinBtn = document.getElementById('pin-button');
+        uploadPinBtn.addEventListener('click', () => {
+            ModalManager.toggle('pin-upload-modal');
+            ModalManager.toggle('profile-modal')
+        });
+    }
+// edit button logic
         document.querySelectorAll('.edit-flight').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const id = btn.dataset.id;
@@ -95,7 +196,7 @@ export function setupProfile() {
                     showToast("Please Choose a new Title!",'error')
                     return;
                 }
-                const res = await fetch(`http://127.0.0.1:5000/api/flights/${id}`, {
+                const res = await fetch(`${backend}/api/flights/${id}`, {
                     method: 'PUT',
                     credentials: 'include',
                     headers: {
@@ -106,6 +207,11 @@ export function setupProfile() {
 
                 if (res.ok) {
                     loadProfile(); // Refresh
+                }
+                if (res.status === 401) {
+                    showToast('Session lost, please login.','error');
+                    // show login modal on unauthorized
+                    ModalManager.toggle('login-modal');
                 } else {
                     showToast('Failed to update flight','error');
                 }
@@ -140,7 +246,7 @@ export function setupProfile() {
             if (!confirmed) return;
 
             try {
-                const res = await fetch(`http://127.0.0.1:5000/api/flights/${id}`, {
+                const res = await fetch(`${backend}/api/flights/${id}`, {
                     method: 'DELETE',
                     credentials: 'include'
                 });
@@ -148,7 +254,12 @@ export function setupProfile() {
                 if (res.ok) {
                     loadProfile();
                     showToast(`Flight: ${id} deleted`,'success');
-                } else {
+                }
+                if (res.status === 401) {
+                    showToast('Session lost, please login.','error');
+                    // show login modal on unauthorized
+                    ModalManager.toggle('login-modal');
+                }else {
                     showToast('Failed to delete flight.','error');
                 }
             } catch (err) {
@@ -183,7 +294,7 @@ export function setupProfile() {
         const newTitle = document.getElementById('edit-title').value;
         const id = document.getElementById('edit-id').value;
 
-        const res = await fetch(`http://127.0.0.1:5000/api/flights/${id}`, {
+        const res = await fetch(`${backend}/api/flights/${id}`, {
             method: 'PUT',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
@@ -193,7 +304,12 @@ export function setupProfile() {
         if (res.ok) {
             ModalManager.hide('edit-modal');
             await loadProfile();
-        } else {
+        }
+        if (res.status === 401) {
+            showToast('Session lost, please login.','error');
+            // show login modal on unauthorized
+            ModalManager.toggle('login-modal');
+        }else {
             showToast('Update failed','error');
         }
     });
@@ -223,7 +339,12 @@ export function setupUploadForm() {
             ModalManager.hide('upload-modal');
 
             uploadForm.reset();
-        } else {
+        }
+        if (res.status === 401) {
+            showToast('Session lost, please login.','error');
+            // show login modal on unauthorized
+            ModalManager.toggle('login-modal');
+        }else {
             showToast('Upload failed.','error');
         }
     });
