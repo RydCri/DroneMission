@@ -7,8 +7,8 @@ import { showProfileModal } from './ui';
 import { setupAuth } from './js/auth.js';
 import { setupFlights } from './js/flights.js';
 import { setupProfile} from './js/profile.js';
-
-
+import { loadPins } from "./js/pins.js";
+import { fetchSession } from "./js/session.js";
 
 let currentModel = null;
 let currentUser = null;
@@ -192,9 +192,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Init modules
     setupAuth();
-    showProfileModal()
+    fetchSession()
+    showProfileModal();
     // setupFlights();
     setupProfile();
+    loadPins();
 
 });
 
