@@ -71,7 +71,7 @@
         <div id="user-info" class="mb-4">
           <!-- Username, maybe avatar etc -->
         </div>
-    <button id="logout-button" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 cursor-pointer">Logout</button>
+    <button id="logout-button" class="bg-orange-600 text-white py-2 px-4 rounded hover:underline hover:bg-orange-700 cursor-pointer">Logout</button>
     </div>
   </div>
   <div id="flight-modal" class="fixed inset-0 bg-transparent flex justify-center items-start pt-20 hidden transition-all duration-[3000ms] ease-in-out z-1">
@@ -102,10 +102,10 @@
 </div>
 
 <!--Pin upload modal-->
-  <div id="pin-upload-modal" class="max-w-xl mx-auto p-6 bg-white rounded-2xl shadow-lg mt-10 hidden">
+  <div id="pin-upload-modal" class="max-w-xl mx-auto p-6 bg-white rounded-2xl shadow-lg mt-10 hidden absolute">
     <div class="rounded-xl w-full max-w-lg p-6 transform translate-y-4 ">
       <button class="close-button basis-32 relative" data-modal-target="pin-upload-modal">✖</button>
-    <h2 class="text-2xl font-bold mb-4">Publish a Pin</h2>
+    <h2 class="bg-blue-500 rounded text-white text-2xl font-bold mb-4">Publish a Pin</h2>
     <form id="pinForm" enctype="multipart/form-data" class="space-y-4">
       <input type="text" name="title" placeholder="Title" required class="w-full p-2 border rounded"/>
 
