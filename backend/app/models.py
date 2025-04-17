@@ -36,6 +36,7 @@ class Flight(db.Model):
 class Pin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship('User', backref='pins')
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
@@ -62,36 +63,28 @@ class Pin(db.Model):
 
 class PinImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    pin_id = db.Column(db.Integer, db.ForeignKey('pin.id'))
-    image_path = db.Column(db.String(255))
-
-
-pin_tags = db.Table('pin_tags',
-                    db.Column('pin_id', db.Integer, db.ForeignKey('pin.id')),
-                    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'))
-                    )
+    image_path = db.Column(db.String(255), nullable=False)
+    pin_id = db.Column(db.Integer, db.ForeignKey('pin.id'), nullable=False)
 
 
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True, nullable=False)
-    pins = db.relationship('Pin', secondary=pin_tags, back_populates='tags')
+    name = db.Column(db.String(50), unique=True)
+    pins = db.relationship('Pin', secondary='pin_tags', back_populates='tags')
+
+
+pin_tags = db.Table('pin_tags',
+                    db.Column('pin_id', db.Integer, db.ForeignKey('pin.id'), primary_key=True),
+                    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True)
+                    )
 
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     pin_id = db.Column(db.Integer, db.ForeignKey('pin.id'))
-    text = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'text': self.text,
-            'created_at': self.created_at.isoformat(),
-            'username': self.user.username
-        }
+    content = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
 
 class Like(db.Model):
