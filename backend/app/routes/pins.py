@@ -25,9 +25,9 @@ def get_pins():
             'description': pin.description,
             'username': pin.user.username,
             'created_at': pin.created_at.isoformat(),
-            'glbPath': f"/uploads/user_{pin.user_id}/models/{os.path.basename(pin.glb_path)}",
+            'glbPath': f"/uploads/user_{pin.user.id}/models/{os.path.basename(pin.glb_path)}",
             'images': [
-                f"/uploads/user_{pin.user_id}/images/{os.path.basename(image.file_path)}" for image in pin.images
+                f"/uploads/user_{pin.user.id}/images/{os.path.basename(img.image_path)}" for img in pin.images
             ],
             'tags': [tag.name for tag in pin.tags]
         })
@@ -89,7 +89,7 @@ def upload_pin():
         img_path = os.path.join(images_folder, img_filename)
         img.save(img_path)
 
-        image_objs.append(PinImage(file_path=img_path))
+        image_objs.append(PinImage(image_path=img_path))
 
     # Deduplicate and fetch or create tags
     tag_objs = []
