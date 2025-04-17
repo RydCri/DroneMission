@@ -177,34 +177,3 @@ def secure_download(filename):
     return send_from_directory(safe_path, filename, as_attachment=True)
 
 
-@main.route('/api/pins', methods=['GET'])
-def get_published_pins():
-    page = request.args.get('page', default=1, type=int)
-    per_page = request.args.get('per_page', default=10, type=int)
-
-    pins_paginated = Pin.query.order_by(Pin.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
-    pins = pins_paginated.items
-
-    def serialize_pin(pin):
-        return {
-            'id': pin.id,
-            'title': pin.title,
-            'description': pin.description,
-            'username': pin.user.username if pin.user else 'Unknown',
-            'createdAt': pin.created_at.isoformat(),
-            'glbPath': f"/uploads/user_{pin.user_id}/models/{pin.glb_path}" if pin.glb_path else None,
-            'images': [
-                f"/uploads/user_{pin.user_id}/scans/{img.filename}"
-                for img in pin.images
-            ],
-            'tags': [tag.name for tag in pin.tags],
-            'likes': len(pin.likes),
-            'commentsCount': len(pin.comments)
-        }
-
-    return jsonify({
-        'pins': [serialize_pin(pin) for pin in pins],
-        'page': page,
-        'total_pages': pins_paginated.pages,
-        'total_items': pins_paginated.total
-    }), 200
