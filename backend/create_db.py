@@ -2,9 +2,6 @@ from run import app
 from app.extensions import db
 from app.models import User
 
-with app.app_context():
-    db.create_all()
-
 
 with app.app_context():
     db.create_all()
