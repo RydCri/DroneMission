@@ -188,3 +188,39 @@ body {
     color: #1f6feb;
 }
 
+#map-container {
+    padding: 1rem;
+}
+
+#map {
+    border: 1px solid #ccc;
+    margin-top: 1rem;
+}
+#mission-log {
+    width: 80%;
+    border: 2px dashed;
+    height: 100px;
+    overflow: auto;
+    background: black;
+    font-size: 1em;
+    font-family: 'Monospaced', Courier, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: darkgrey;
+}
+.log-event {
+    overflow: hidden;
+    margin: 0;
+    line-height: 1em;
+    white-space: nowrap;
+}
+@keyframes scroll {
+    0% { width: 0 }
+    100% { width: 100%; }
+}
+.log-event:last-child {
+    color: #00dd00;
+    background: darkslategrey;
+    scroll-behavior: smooth;
+    animation: scroll 1s 1;
+}
