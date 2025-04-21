@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Drone Mission Planner</title>
+    <link rel="stylesheet" href="src/styles.css" />
+</head>
+<body>
+<!--Navbar-->
+<nav class="bg-gray-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
+    <!-- Left: Logo/Title -->
+    <div class="flex items-center space-x-3">
+        <img src="./drone_favi.png" alt="Logo" class="item_icon" style="height: 50px;width: 50px;" />
+        <span class="text-xl font-bold tracking-tight">FlightScan</span>
+    </div>
+
+    <!-- Center: Nav Links -->
+    <div class="md:flex space-x-6">
+        <a href="/dashboard.html" class="hover:text-gray-300">Dashboard</a>
+        <a href="#" class="hover:text-gray-300">Explore Flights</a>
+    </div>
+
+    <!-- Right: Auth/Profile -->
+    <div class="flex items-center space-x-4">
+    <button id="login-btn" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 cursor-pointer">Login</button>
+    <button id="profile-btn" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 hidden cursor-pointer">Profile</button>
+
+    </div>
+</nav>
+
+<div id="login-container">
+    <!-- 🔐 Login Modal -->
+    <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 duration-300 ease-in-out">
+        <div id="login-modal-content" class="bg-white rounded-2xl p-6 w-full max-w-md relative shadow-xl">
+            <button class="close-button" data-modal-target="login-modal">✖</button>
+            <h2 class="text-xl font-semibold mb-4">Sign in to your account</h2>
+            <form id="login-form" class="flex flex-col gap-4">
+                <input type="text" name="username" placeholder="Username" class="border p-2 rounded" required />
+                <input type="password" name="password" placeholder="Password" class="border p-2 rounded" required />
+                <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 cursor-pointer">Login</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="map-container" class="bg-black max-w-xl rounded-2xl p-6 w-full shadow-xl">
+    <h2 class="p-2 text-white tx-bold">Mission Log</h2>
+    <ul id="mission-log"></ul>
+    <div id="map" style="height: 500px;" class="rounded-2xl p-6 w-full">
+    </div>
+    <!-- Below map div -->
+    <div id="mission-controls" class="bg-white rounded-2xl p-6 w-full max-w-md relative shadow-xl">
+        <p>📍 Selected POI: <span id="poi-coords">None</span></p>
+
+        <label for="mission-type">🚁 Mission Type:</label>
+        <select id="mission-type">
+            <option value="">-- Select a mission --</option>
+            <option value="orbit">Orbit POI</option>
+            <option value="grid-photo">Grid (2D)</option>
+            <option value="double-grid-photo">Double Grid (3D)</option>
+        </select>
+
+        <button class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 cursor-pointer" id="start-mission" disabled>Start Mission</button>
+    </div>
+</div>
+
+<script type="module" src="src/js/map.js"></script>
+<script type="module" src="src/js/dashboard.js"></script>
+</body>
+</html>
