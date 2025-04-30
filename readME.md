@@ -1,16 +1,23 @@
-### Drone Mission
-
 <i>WIP</i><br>
-Folder structure may be inaccurate, github doesn't reflect all changes on the dev side. 
+<h3>FlightScan is a webapp for drone enthusiasts</h3>
+<ul>
+<li>Plan automatic drone flights with the mission builder.</li>
+<li>Build projects with your drone footage.</li>
+<li>Share your flights and projects with others on the platform.</li>
+</ul>
+<p>This app is centered on orthomosiacs, photogrammetry, multispectrum scans and other projects that can be made with your drone footage.</p>
+
+<h3>Live site is coming soon!</h3>
 <br>
-Automatic Drone Mission Planner using FlyLitchi, WebODM 3D model maker using Photogrammetry from photos taken during drone flights, Vite frontend for viewing 3D models and scans from drone flights, Flask backend for user uploads.
+<img style="height:350px;width:450px;" src="orbitsTrees.png" alt="drone mission builder app"/>
 <br>
-![WIP_screenshot.png](frontend%2Fpublic%2FWIP_screenshot.png)
+<i>Drone Flight Planner</i>
+<br>
+<img style="height:350px;width:450px;" src="WIP_screenshot.png" alt="web app flightscan"/>
+<br>
 <i>Webapp component</i>
 <br>
-![flylitchi_screenshot.png](frontend%2Fpublic%2Fflylitchi_screenshot.png)
-<i>FlyLitchi Drone Flight Planner</i>
+<img style="height:350px;width:450px;" src="Photogrammetry_screen.png" alt="drone mission builder app"/>
 <br>
-![Photogrammetry_screen.png](frontend%2Fpublic%2FPhotogrammetry_screen.png)
-<i>Photogrammetry Constructor, build 3D models from scans taken in drone flights</i>
+<i>Photogrammetry Constructor</i>
 <br>
