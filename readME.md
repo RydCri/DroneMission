@@ -11,7 +11,7 @@
 <br>
 <img style="height:350px;width:450px;" src="orbitsTrees.png" alt="drone mission builder app"/>
 <br>
-<i>Drone Flight Planner</i>
+<i>Drone Flight Planner <a href="https://github.com/RydCri/DroneMission_flights">In development</a></i>
 <br>
 <img style="height:350px;width:450px;" src="WIP_screenshot.png" alt="web app flightscan"/>
 <br>
