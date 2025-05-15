@@ -81,10 +81,14 @@ pin_tags = db.Table('pin_tags',
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    pin_id = db.Column(db.Integer, db.ForeignKey('pin.id'))
-    content = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    text = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    pin_id = db.Column(db.Integer, db.ForeignKey('pin.id'), nullable=False)
+
+    user = db.relationship('User', backref='comments')
+    pin = db.relationship('Pin', backref='comments')
 
 
 class Like(db.Model):
