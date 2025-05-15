@@ -2,7 +2,8 @@ import os
 import uuid
 from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify, session, current_app
-from ..models import Pin, PinImage, Tag
+from flask_login import current_user, login_required
+from ..models import Pin, PinImage, Tag, Comment
 from ..extensions import db
 from werkzeug.utils import secure_filename
 
@@ -139,8 +140,42 @@ def get_user_pins():
             'images': [
                 f"/uploads/user_{pin.user.id}/images/{os.path.basename(img.image_path)}" for img in pin.images
             ],
-            'tags': [tag.name for tag in pin.tags]
+            'tags': [tag.name for tag in pin.tags],
+            'likes': f"{[pin.likes].count}"
         })
 
     return jsonify({'pins': user_pins}), 200
 
+
+@pins.route('/pins/<int:pin_id>/comments', methods=['POST'])
+@login_required
+def add_comment(pin_id):
+    data = request.get_json()
+    comment_text = data.get('text')
+
+    if not comment_text:
+        return jsonify({'error': 'Comment cannot be empty'}), 400
+
+    comment = Comment(text=comment_text, user_id=current_user.id, pin_id=pin_id)
+    db.session.add(comment)
+    db.session.commit()
+
+    return jsonify({
+        'id': comment.id,
+        'text': comment.text,
+        'user': current_user.username,
+        'timestamp': comment.timestamp.isoformat()
+    })
+
+
+@pins.route('/pins/<int:pin_id>/comments', methods=['GET'])
+def get_comments(pin_id):
+    comments = Comment.query.filter_by(pin_id=pin_id).order_by(Comment.timestamp.desc()).all()
+    return jsonify([
+        {
+            'id': c.id,
+            'text': c.text,
+            'user': c.user.username,
+            'timestamp': c.timestamp.isoformat()
+        } for c in comments
+    ])
