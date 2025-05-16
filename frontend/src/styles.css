@@ -91,8 +91,8 @@ body {
 
 .close-button {
     display: flow;
-    position: absolute;
-    top: 0.5rem; right: 0.5rem;
+    position: relative;
+    top: 0.2rem; right: 0.5rem;
     border: none;
     background: none;
     font-size: 1.5rem;
