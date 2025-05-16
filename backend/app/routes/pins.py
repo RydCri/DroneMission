@@ -147,7 +147,7 @@ def get_user_pins():
     return jsonify({'pins': user_pins}), 200
 
 
-@pins.route('/pins/<int:pin_id>/comments', methods=['POST'])
+@pins.route('/<int:pin_id>/comments', methods=['POST'])
 @login_required
 def add_comment(pin_id):
     data = request.get_json()
@@ -168,7 +168,7 @@ def add_comment(pin_id):
     })
 
 
-@pins.route('/pins/<int:pin_id>/comments', methods=['GET'])
+@pins.route('/<int:pin_id>/comments', methods=['GET'])
 def get_comments(pin_id):
     comments = Comment.query.filter_by(pin_id=pin_id).order_by(Comment.timestamp.desc()).all()
     return jsonify([
@@ -179,3 +179,38 @@ def get_comments(pin_id):
             'timestamp': c.timestamp.isoformat()
         } for c in comments
     ])
+
+@pins.route('/<int:pin_id>')
+def get_pin(pin_id):
+    pin = Pin.query.get_or_404(pin_id)
+    return jsonify({
+        'id': pin.id,
+        'title': pin.title,
+        'description': pin.description,
+        'created_at': pin.created_at.isoformat(),
+        'user': {'username': pin.user.username},
+        'user_id': pin.user_id,
+        'glb_path': pin.glb_path,
+        'images': [{'url': img.image_path} for img in pin.images],
+        'tags': [tag.name for tag in pin.tags],
+        'likes': len(pin.likes),
+        'comments': [
+            {
+                'id': c.id,
+                'text': c.text,
+                'timestamp': c.timestamp.isoformat(),
+                'user': {'username': c.user.username},
+                'likes': len(c.likes),
+                'replies': [
+                    {
+                        'id': r.id,
+                        'text': r.text,
+                        'timestamp': r.timestamp.isoformat(),
+                        'user': {'username': r.user.username},
+                        'likes': len(r.likes)
+                    } for r in c.replies
+                ]
+            } for c in pin.comments if c.parent_id is None
+        ]
+    })
+
