@@ -40,10 +40,10 @@ class Pin(db.Model):
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
-    glb_path = db.Column(db.String(255))  # Featured 3D model
+    glb_path = db.Column(db.String(255), nullable=True)  # Featured 3D model
     images = db.relationship('PinImage', backref='pin', lazy=True, cascade="all, delete-orphan")
     tags = db.relationship('Tag', secondary='pin_tags', back_populates='pins')
-    comments = db.relationship('Comment', backref='pin', lazy=True, cascade="all, delete-orphan")
+    comments = db.relationship('Comment', back_populates='pin')
     likes = db.relationship('Like', backref='pin', lazy=True, cascade="all, delete-orphan")
 
     def to_dict(self):
@@ -79,6 +79,12 @@ pin_tags = db.Table('pin_tags',
                     )
 
 
+class Like(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    pin_id = db.Column(db.Integer, db.ForeignKey('pin.id'))
+
+
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text, nullable=False)
@@ -86,12 +92,24 @@ class Comment(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     pin_id = db.Column(db.Integer, db.ForeignKey('pin.id'), nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=True)
 
     user = db.relationship('User', backref='comments')
-    pin = db.relationship('Pin', backref='comments')
+    pin = db.relationship('Pin', back_populates='comments')
+    replies = db.relationship(
+        'Comment',
+        backref=db.backref('parent', remote_side=[id]),
+        lazy='joined',
+        cascade='all, delete-orphan'
+    )
 
 
-class Like(db.Model):
+class CommentLike(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    pin_id = db.Column(db.Integer, db.ForeignKey('pin.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=False)
+
+    user = db.relationship('User', backref='comment_likes')
+    comment = db.relationship('Comment', backref='likes')
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'comment_id', name='unique_comment_like'),)
