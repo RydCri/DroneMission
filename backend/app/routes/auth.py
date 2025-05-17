@@ -1,14 +1,10 @@
 from flask import Blueprint, request, session, jsonify
-from flask_login import login_user, logout_user, login_required, current_user, login_manager
+from flask_login import login_user, logout_user, login_required, current_user, LoginManager
 from ..models import User
 from ..extensions import db
 
 auth = Blueprint('auth', __name__)
 
-
-# @login_manager.user_loader
-# def load_user(user_id):
-#     return User.query.get(int(user_id))
 
 @auth.route('/test', methods=['POST'])
 def auth_test():
@@ -39,8 +35,7 @@ def login():
     user = User.query.filter_by(username=username).first()
 
     if user and user.check_password(password):
-        session['user_id'] = user.id
-        print("Session Created ", session['user_id'])
+        login_user(user)
         return jsonify({"message": "Logged in successfully"}), 200
     else:
         return jsonify({"error": "Invalid username or password"}), 401
@@ -48,18 +43,17 @@ def login():
 
 @auth.route('/session')
 def session_status():
-    if 'user_id' in session:
-        user = User.query.get(session['user_id'])
-        print("Get Session Called")
-        return jsonify({'username': user.username, 'user_id': user.id})
+    if not current_user:
+        return
+    if current_user.is_authenticated:
+        return jsonify({'username': current_user.username, 'user_id': current_user.id})
     return jsonify({'message': 'Not logged in'}), 401
 
 
 @auth.route('/logout', methods=['POST'])
 def logout():
-    session.pop('user_id', None)
-    session.clear()
-    return jsonify({'message': 'Logged out successfully'}), 200
+    logout_user()
+    return jsonify({'message': 'Logged out successfully'})
 
 
 @auth.route("/profile")
