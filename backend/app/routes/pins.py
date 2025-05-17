@@ -1,9 +1,10 @@
 import os
+import re
 import uuid
 from datetime import datetime, timezone
-from flask import Blueprint, request, jsonify, session, current_app
+from flask import Blueprint, request, jsonify, session, current_app, render_template_string
 from flask_login import current_user, login_required
-from ..models import Pin, PinImage, Tag, Comment
+from ..models import Pin, PinImage, Tag, Comment, CommentLike
 from ..extensions import db
 from werkzeug.utils import secure_filename
 
@@ -180,9 +181,25 @@ def get_comments(pin_id):
         } for c in comments
     ])
 
+
 @pins.route('/<int:pin_id>')
 def get_pin(pin_id):
     pin = Pin.query.get_or_404(pin_id)
+
+    def serialize_comment(comment):
+        likes = sum(1 for l in comment.likes)
+        dislikes = sum(1 for l in comment.likes) * -1  # Or change to count negative votes if you implement them
+
+        return {
+            'id': comment.id,
+            'text': comment.text,
+            'timestamp': comment.timestamp.isoformat(),
+            'user': {'username': comment.user.username},
+            'likes': likes,
+            'dislikes': dislikes,
+            'replies': [serialize_comment(reply) for reply in comment.replies]
+        }
+
     return jsonify({
         'id': pin.id,
         'title': pin.title,
@@ -194,23 +211,82 @@ def get_pin(pin_id):
         'images': [{'url': img.image_path} for img in pin.images],
         'tags': [tag.name for tag in pin.tags],
         'likes': len(pin.likes),
-        'comments': [
-            {
-                'id': c.id,
-                'text': c.text,
-                'timestamp': c.timestamp.isoformat(),
-                'user': {'username': c.user.username},
-                'likes': len(c.likes),
-                'replies': [
-                    {
-                        'id': r.id,
-                        'text': r.text,
-                        'timestamp': r.timestamp.isoformat(),
-                        'user': {'username': r.user.username},
-                        'likes': len(r.likes)
-                    } for r in c.replies
-                ]
-            } for c in pin.comments if c.parent_id is None
-        ]
+        'comments': [serialize_comment(c) for c in pin.comments if c.parent_id is None]
     })
 
+
+@pins.route('/comments', methods=['POST'])
+@login_required
+def post_comment():
+    data = request.get_json()
+    text = data.get('text', '').strip()
+    pin_id = data.get('pin_id')
+    parent_id = data.get('parent_id')
+
+    if not text:
+        return jsonify({'error': 'Text required'}), 400
+
+    comment = Comment(
+        text=text,
+        user_id=current_user.id,
+        pin_id=pin_id,
+        parent_id=parent_id
+    )
+
+    # Extract tags
+    raw_tags = set(re.findall(r'#(\w[\w\-]*)', text))
+    for tag_name in raw_tags:
+        tag = Tag.query.filter_by(name=tag_name).first()
+        if not tag:
+            tag = Tag(name=tag_name)
+            db.session.add(tag)
+        comment.tags.append(tag)
+
+    db.session.add(comment)
+    db.session.commit()
+
+    # Render minimal comment HTML
+    comment_html = render_template_string('''
+        <div class="comment border rounded p-2 my-2">
+            <p class="text-sm"><strong>{{ user }}</strong>: {{ text }}</p>
+            <div class="text-xs text-gray-500">{{ timestamp }}</div>
+            {% if tags %}
+                <div class="mt-1 text-xs">
+                    {% for tag in tags %}
+                        <span class="text-blue-500">#{{ tag }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    ''', user=current_user.username, text=comment.text, timestamp=comment.timestamp.strftime('%Y-%m-%d %H:%M'), tags=raw_tags)
+
+    return jsonify({'html': comment_html})
+
+
+@pins.route('/comments/<int:comment_id>/like', methods=['POST'])
+@login_required
+def like_comment(comment_id):
+    value = request.json.get('value')  # Expecting 1 (like) or -1 (dislike)
+    if value not in [1, -1]:
+        return jsonify({'error': 'Invalid like value'}), 400
+
+    comment = Comment.query.get_or_404(comment_id)
+
+    existing = CommentLike.query.filter_by(user_id=current_user.id, comment_id=comment_id).first()
+
+    if existing:
+        # Toggle or remove
+        if existing.value == value:
+            db.session.delete(existing)  # remove like/dislike
+        else:
+            existing.value = value       # switch like/dislike
+    else:
+        new_like = CommentLike(user_id=current_user.id, comment_id=comment_id, value=value)
+        db.session.add(new_like)
+
+    db.session.commit()
+
+    likes = sum(1 for l in comment.likes if l.value == 1)
+    dislikes = sum(1 for l in comment.likes if l.value == -1)
+
+    return jsonify({'likes': likes, 'dislikes': dislikes})
