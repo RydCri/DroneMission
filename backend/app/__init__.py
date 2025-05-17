@@ -1,13 +1,16 @@
 import os
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
+from flask_login import LoginManager
 from flask_migrate import Migrate
 
 from .extensions import db
+from .models import User
 from .routes import register_routes
 from .routes.auth import auth as auth_blueprint
 from .routes.main import main as main_blueprint
 from .routes.pins import pins as pins_blueprint
+
 
 def create_app():
     app = Flask(__name__)
@@ -17,8 +20,18 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'uploads')
     app.config.from_object('config.Config')
+    login_manager = LoginManager()
 
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
 
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    login_manager.login_view = 'auth.login'
+    login_manager.init_app(app)
 
 #TODO: Change this for prod
     app.config.update(
