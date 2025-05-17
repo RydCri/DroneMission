@@ -66,7 +66,7 @@ async function pinDetail(pinId) {
     const imageHTML = data.images.map(img => {
         const filename = img.url.split('/').pop(); // extract filename
         const userId = data.user.id; // refactored to use user passed to Pin dict
-        return `<img src="${backend}/uploads/user_${data.user_id}/images/${filename}" alt="${data.title}" class="rounded mb-4 w-full max-h-64 object-cover" />`;
+        return `<img src="${backend}/uploads/user_${data.user_id}/images/${filename}" alt="${data.title}" class="pin-image rounded mb-4 w-full max-h-64 object-cover" />`;
     }).join('');
 
 
@@ -239,6 +239,26 @@ function bindPinModalEvents() {
     if (postBtn) {
         postBtn.addEventListener('click', postNewComment);
     }
+
+    // Image Overlay
+
+    document.querySelectorAll('.pin-image').forEach(img => {
+        img.addEventListener('click', () => {
+            const overlay = document.getElementById('image-overlay');
+            const overlayImg = document.getElementById('overlay-img');
+            overlayImg.src = img.src;
+            overlay.classList.remove('hidden');
+        });
+    });
+
+    document.getElementById('image-overlay').addEventListener('click', () => {
+        document.getElementById('image-overlay').classList.add('hidden');
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.getElementById('image-overlay').classList.add('hidden');
+        }
+    });
 }
 
 
