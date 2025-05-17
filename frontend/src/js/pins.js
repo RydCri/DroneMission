@@ -4,7 +4,7 @@ import {ModalManager} from "./modal.js";
 
 
 
-
+let currentPinId = null;
 const backend = 'http://127.0.0.1:5000'
 export async function loadPins() {
     const res = await fetch(`${backend}/pins`);
@@ -78,6 +78,8 @@ async function submitComment(pinId) {
 }
 
 async function pinDetail(pinId) {
+    currentPinId = pinId;
+
     const res = await fetch(`${backend}/pins/${pinId}`);
     if (!res.ok) {
         console.error("Failed to fetch pin details");
@@ -98,27 +100,8 @@ async function pinDetail(pinId) {
         return `<img src="${backend}/uploads/user_${data.user_id}/images/${filename}" alt="${data.title}" class="rounded mb-4 w-full max-h-64 object-cover" />`;
     }).join('');
 
-    // Format comments with replies
-    const commentsHTML = data.comments.map(comment => {
-        const repliesHTML = comment.replies.map(reply => `
-      <div class="ml-4 mt-2 border-l pl-3">
-        <p class="text-sm font-medium">${reply.user.username} <span class="text-gray-400 text-xs">• ${timeAgo(reply.timestamp)}</span></p>
-        <p class="text-sm text-gray-600">${reply.text}</p>
-      </div>
-    `).join('');
 
-        return `
-      <div class="border p-3 rounded mb-3">
-        <p class="text-sm font-medium">${comment.user.username} <span class="text-gray-400 text-xs">• ${timeAgo(comment.timestamp)}</span></p>
-        <p class="text-gray-700 text-sm mt-1">${comment.text}</p>
-        <div class="flex items-center text-sm gap-4 mt-2 text-gray-500">
-          <button class="hover:text-red-500">❤️ ${comment.likes}</button>
-          <button class="hover:text-blue-500">Reply</button>
-        </div>
-        ${repliesHTML}
-      </div>
-    `;
-    }).join('');
+    const commentsHTML = data.comments.map(c => renderComment(c)).join('');
 
     // Fill modal content using string literal
     modal.innerHTML = `
@@ -132,16 +115,17 @@ async function pinDetail(pinId) {
       <div class="flex items-center mb-6 text-sm text-gray-500">
         <button class="hover:text-red-500">❤️ ${data.likes} likes</button>
       </div>
-      <div class="space-y-4 mb-4">
+      <div class="space-y-4 mb-4" id="pin-comments">
         <h3 class="text-lg font-semibold">Comments</h3>
         ${commentsHTML}
       </div>
       <div class="border-t pt-4">
-        <textarea class="w-full border rounded p-2 text-sm mb-2" placeholder="Leave a comment..."></textarea>
-        <button class="bg-blue-500 text-white px-4 py-2 rounded">Post</button>
+        <textarea class="w-full border rounded p-2 text-sm mb-2 comment" placeholder="Leave a comment..."></textarea>
+        <button id="post-new-comment" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 cursor-pointer">Post</button>
       </div>
     </div>
-  `;
+    `;
+
     const deleteBtn = document.createElement('div');
     deleteBtn.innerHTML = `  <button 
     class="close-button"
@@ -152,6 +136,7 @@ async function pinDetail(pinId) {
     modal.appendChild(deleteBtn);
 
     modal.classList.remove('hidden');
+    bindPinModalEvents(); // set listeners
 }
 
 // Helper
@@ -221,3 +206,102 @@ document.getElementById('pinForm').addEventListener('submit', async (e) => {
         }
     })();
 });
+
+
+function bindPinModalEvents() {
+    document.querySelectorAll('.reply-btn').forEach(btn => {
+        const commentEl = btn.closest('[data-comment-id]');
+        const commentId = commentEl.dataset.commentId;
+
+        btn.addEventListener('click', () => {
+            const form = commentEl.querySelector('.reply-form');
+            form.classList.toggle('hidden');
+        });
+    });
+
+    document.querySelectorAll('.post-reply-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const commentEl = btn.closest('[data-comment-id]');
+            const commentId = commentEl.dataset.commentId;
+            const textarea = commentEl.querySelector('.reply-input');
+            const text = textarea.value.trim();
+            if (!text) return;
+
+            await postReply(commentId, text);
+        });
+    });
+
+    document.querySelectorAll('.like-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const commentEl = btn.closest('[data-comment-id]');
+            const commentId = commentEl.dataset.commentId;
+            const value = parseInt(btn.dataset.value);
+            await likeComment(commentId, value);
+        });
+    });
+
+    const postBtn = document.querySelector('#post-new-comment');
+    if (postBtn) {
+        postBtn.addEventListener('click', postNewComment);
+    }
+}
+
+
+function renderComment(comment) {
+    return `
+    <div class="border rounded p-3 mb-2" data-comment-id="${comment.id}">
+      <div class="text-sm font-medium">${comment.user.username}<span class="text-gray-400 text-xs">• ${timeAgo(comment.timestamp)}</span></div>
+      <p class="text-sm mb-2">${comment.text}</p>
+      <div class="flex gap-4 text-xs text-gray-500">
+        <button class="like-btn" data-value="1">👍 ${comment.likes}</button>
+        <button class="like-btn" data-value="-1">👎 ${comment.dislikes}</button>
+        <button class="reply-btn text-blue-500 hover:underline">Reply</button>
+      </div>
+      <div class="reply-form hidden mt-2">
+        <textarea class="w-full border rounded p-2 text-sm mb-2 reply-input" placeholder="Write a reply..."></textarea>
+        <button class="post-reply-btn bg-blue-500 text-white px-2 py-1 rounded text-sm">Post Reply</button>
+      </div>
+      <div class="ml-4 mt-2 space-y-2">
+        ${(comment.replies || []).map(renderComment).join('')}
+      </div>
+    </div>
+  `;
+}
+
+
+async function postNewComment() {
+    const textarea = document.querySelector('textarea.comment');
+    const text = textarea.value.trim();
+    if (!text) return;
+
+    await fetch(`${backend}/pins/${currentPinId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: "include",
+        body: JSON.stringify({ text, pin_id: currentPinId})
+    });
+
+    await pinDetail(currentPinId);
+}
+
+async function postReply(parentId, text) {
+    await fetch(`${backend}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: "include",
+        body: JSON.stringify({ text, parent_id: parentId, pin_id: currentPinId })
+    });
+
+    await pinDetail(currentPinId);
+}
+
+async function likeComment(commentId, value) {
+    await fetch(`${backend}/comments/${commentId}/like`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: "include",
+        body: JSON.stringify({ value })
+    });
+
+    await pinDetail(currentPinId);
+}
