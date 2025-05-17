@@ -1,23 +1,23 @@
 from datetime import datetime, timezone
+from flask_login import UserMixin
 
 from .extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
 
+    flights = db.relationship('Flight', backref='user', lazy=True)
+
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256') # MacOS OpenSSL conflict with scrypt
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-
-    # One-to-many
-    flights = db.relationship('Flight', backref='user', lazy=True)
 
 
 class Flight(db.Model):
@@ -71,12 +71,18 @@ class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True)
     pins = db.relationship('Pin', secondary='pin_tags', back_populates='tags')
+    comments = db.relationship('Comment', secondary='comment_tags', back_populates='tags')
 
 
 pin_tags = db.Table('pin_tags',
                     db.Column('pin_id', db.Integer, db.ForeignKey('pin.id'), primary_key=True),
                     db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True)
                     )
+
+comment_tags = db.Table('comment_tags',
+                        db.Column('comment_id', db.Integer, db.ForeignKey('comment.id'), primary_key=True),
+                        db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True)
+                        )
 
 
 class Like(db.Model):
@@ -96,18 +102,15 @@ class Comment(db.Model):
 
     user = db.relationship('User', backref='comments')
     pin = db.relationship('Pin', back_populates='comments')
-    replies = db.relationship(
-        'Comment',
-        backref=db.backref('parent', remote_side=[id]),
-        lazy='joined',
-        cascade='all, delete-orphan'
-    )
+    replies = db.relationship('Comment', backref=db.backref('parent', remote_side=[id]), lazy='joined')
+    tags = db.relationship('Tag', secondary=comment_tags, back_populates='comments')
 
 
 class CommentLike(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=False)
+    value = db.Column(db.Integer, default=1)  # 1 = like, -1 = dislike
 
     user = db.relationship('User', backref='comment_likes')
     comment = db.relationship('Comment', backref='likes')
