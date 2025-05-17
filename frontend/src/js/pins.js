@@ -93,8 +93,8 @@ async function pinDetail(pinId) {
 
     // Format images (carousel)
     const imageHTML = data.images.map(img => {
-        const filename = img.url.split('/').pop(); // extract just the filename
-        const userId = data.user.id; // assuming data.user.id is available
+        const filename = img.url.split('/').pop(); // extract filename
+        const userId = data.user.id; // refactored to use user passed to Pin dict
         return `<img src="${backend}/uploads/user_${data.user_id}/images/${filename}" alt="${data.title}" class="rounded mb-4 w-full max-h-64 object-cover" />`;
     }).join('');
 
