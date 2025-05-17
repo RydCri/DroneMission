@@ -46,37 +46,6 @@ export async function loadPins() {
 }
 
 
-
-async function loadComments(pinId) {
-    const res = await fetch(`/pins/${pinId}/comments`);
-    const comments = await res.json();
-
-    const container = document.getElementById('comments-list');
-    container.innerHTML = '';
-
-    comments.forEach(comment => {
-        const div = document.createElement('div');
-        div.innerHTML = `<strong>${comment.user}</strong>: ${comment.text}`;
-        container.appendChild(div);
-    });
-}
-
-async function submitComment(pinId) {
-    const text = document.getElementById('comment-input').value;
-    if (!text.trim()) return;
-
-    const res = await fetch(`/pins/${pinId}/comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
-    });
-
-    if (res.ok) {
-        document.getElementById('comment-input').value = '';
-        loadComments(pinId);
-    }
-}
-
 async function pinDetail(pinId) {
     currentPinId = pinId;
 
@@ -105,7 +74,11 @@ async function pinDetail(pinId) {
 
     // Fill modal content using string literal
     modal.innerHTML = `
-    <div class="bg-white rounded-lg shadow-lg max-w-2xl w-full p-6 overflow-y-scroll">
+    <div class="relative bg-white rounded-lg shadow-lg max-w-2xl w-full p-6">
+    <button
+      class="close-button absolute top-2 right-2 text-2xl text-red-500 hover:text-red-700 leading-none cursor-pointer"
+      data-modal-target="pinSocial"
+    >✖</button>
 
       <h2 class="text-2xl font-bold mb-2">${data.title}</h2>
       <p class="text-sm text-gray-500 mb-4">By <span class="font-medium">${data.user.username}</span> • ${new Date(data.created_at).toLocaleDateString()}</p>
@@ -115,10 +88,18 @@ async function pinDetail(pinId) {
       <div class="flex items-center mb-6 text-sm text-gray-500">
         <button class="hover:text-red-500">❤️ ${data.likes} likes</button>
       </div>
-      <div class="space-y-4 mb-4" id="pin-comments">
-        <h3 class="text-lg font-semibold">Comments</h3>
-        ${commentsHTML}
-      </div>
+        <div class="space-y-4 mb-4" id="pin-comments">
+          <div class="flex items-center">
+            <h3 class="text-lg font-semibold">Comments ${data.comments.length}</h3>
+            <button id="comments-toggle" class="text-lg font-bold hover:underline focus:outline-none cursor-pointer">+</button>
+          </div>
+          <div id="comments-list-hydrate"
+               class="overflow-y-auto max-h-20 transition-[max-height] duration-300 ease-in-out">
+            <button id="comments-latest" class="text-sm text-blue-500 hover:underline focus:outline-none cursor-pointer">Latest</button>
+            ${commentsHTML}
+          </div>
+        </div>
+
       <div class="border-t pt-4">
         <textarea class="w-full border rounded p-2 text-sm mb-2 comment" placeholder="Leave a comment..."></textarea>
         <button id="post-new-comment" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 cursor-pointer">Post</button>
@@ -126,14 +107,6 @@ async function pinDetail(pinId) {
     </div>
     `;
 
-    const deleteBtn = document.createElement('div');
-    deleteBtn.innerHTML = `  <button 
-    class="close-button"
-    data-modal-target="pinSocial"
-    >
-    ✖
-  </button>`;
-    modal.appendChild(deleteBtn);
 
     modal.classList.remove('hidden');
     bindPinModalEvents(); // set listeners
@@ -216,6 +189,28 @@ function bindPinModalEvents() {
         btn.addEventListener('click', () => {
             const form = commentEl.querySelector('.reply-form');
             form.classList.toggle('hidden');
+        });
+    });
+
+
+    document.getElementById('comments-toggle').addEventListener('click', () => {
+        const hydrate = document.getElementById('comments-list-hydrate');
+        const toggleBtn = document.getElementById('comments-toggle');
+
+        const isExpanded = hydrate.classList.contains('max-h-60');
+
+        hydrate.classList.toggle('max-h-20', isExpanded);
+        hydrate.classList.toggle('max-h-60', !isExpanded);
+
+        toggleBtn.textContent = isExpanded ? '+' : '−';
+    });
+
+
+    document.getElementById('comments-latest').addEventListener('click', () => {
+        const hydrate = document.getElementById('comments-list-hydrate');
+        hydrate.scrollTo({
+            top: hydrate.scrollHeight,
+            behavior: 'smooth'
         });
     });
 
