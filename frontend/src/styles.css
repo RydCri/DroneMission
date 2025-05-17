@@ -130,6 +130,12 @@ body {
     margin-bottom: 0.5em;
 }
 
+#image-overlay {
+    cursor: zoom-out;
+}
+#overlay-img {
+    object-fit: contain;
+}
 
 
 .profile-flight {
