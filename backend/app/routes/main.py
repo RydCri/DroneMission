@@ -3,38 +3,33 @@ import uuid
 from datetime import datetime, timezone
 from flask import send_from_directory, request, current_app, abort
 from flask import Blueprint, jsonify, session
-from flask_login import login_required
+from flask_login import login_required, current_user
 from ..models import Flight, User, Pin
 from ..extensions import db
 
 main = Blueprint('main', __name__)
 
 
+@login_required
 @main.route('/flights/user', methods=['GET'])
 def get_user_flights():
-    user_id = session.get('user_id')
-    if not user_id:
+    user = current_user
+    if not user or not user.is_authenticated:
         return jsonify({'error': 'Unauthorized'}), 401
 
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
-
-    # Use base filename to construct public paths
     user_flights = [
         {
             'id': flight.id,
             'title': flight.title,
             'user_id': flight.user_id,
-            'glbPath': f"/uploads/user_{user_id}/models/{os.path.basename(flight.glb_path)}",
-            'scanPath': f"/uploads/user_{user_id}/scans/{os.path.basename(flight.scan_path)}",
+            'glbPath': f"/uploads/user_{user.id}/models/{os.path.basename(flight.glb_path)}",
+            'scanPath': f"/uploads/user_{user.id}/scans/{os.path.basename(flight.scan_path)}",
             'uploadedAt': flight.uploaded_at.isoformat() if flight.uploaded_at else None
         }
         for flight in user.flights
     ]
 
     return jsonify({'flights': user_flights}), 200
-
 
 
 @main.route('/flights/upload', methods=['POST'])
