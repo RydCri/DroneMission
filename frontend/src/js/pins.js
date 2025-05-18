@@ -192,7 +192,7 @@ function bindPinModalEvents() {
         });
     });
 
-
+    // Comment toggle
     document.getElementById('comments-toggle').addEventListener('click', () => {
         const hydrate = document.getElementById('comments-list-hydrate');
         const toggleBtn = document.getElementById('comments-toggle');
@@ -205,6 +205,22 @@ function bindPinModalEvents() {
         toggleBtn.textContent = isExpanded ? '+' : '−';
     });
 
+    // Reply toggle
+
+    document.querySelectorAll('.toggle-reply-btn').forEach(btn => {
+        const replyEL = btn.closest('[reply-tree]');
+        const isExpanded = replyEL.classList.contains('max-h-full');
+
+
+        btn.addEventListener('click', () => {
+            replyEL.classList.toggle('max-h-0', isExpanded);
+            replyEL.classList.toggle('max-h-full', !isExpanded);
+        });
+
+        btn.textContent = isExpanded ? '+' : '−';
+
+
+    });
 
     document.getElementById('comments-latest').addEventListener('click', () => {
         const hydrate = document.getElementById('comments-list-hydrate');
@@ -268,15 +284,16 @@ function renderComment(comment) {
       <div class="text-sm font-medium">${comment.user.username}<span class="text-gray-400 text-xs">• ${timeAgo(comment.timestamp)}</span></div>
       <p class="text-sm mb-2">${comment.text}</p>
       <div class="flex gap-4 text-xs text-gray-500">
-        <button class="like-btn" data-value="1">👍 ${comment.likes}</button>
-        <button class="like-btn" data-value="-1">👎 ${comment.dislikes}</button>
+        <button class="like-btn cursor-pointer" data-value="1">👍 ${comment.likes}</button>
+        <button class="like-btn cursor-pointer" data-value="-1">👎 ${comment.dislikes}</button>
         <button class="reply-btn text-blue-500 hover:underline">Reply</button>
       </div>
       <div class="reply-form hidden mt-2">
         <textarea class="w-full border rounded p-2 text-sm mb-2 reply-input" placeholder="Write a reply..."></textarea>
-        <button class="post-reply-btn bg-blue-500 text-white px-2 py-1 rounded text-sm">Post Reply</button>
+        <button class="post-reply-btn bg-blue-500 text-white px-2 py-1 hover:bg-blue-600 rounded text-sm">Post Reply</button>
       </div>
-      <div class="ml-4 mt-2 space-y-2">
+      <div class="reply-tree ml-4 mt-2 space-y-2 max-h-full">
+      <button class="toggle-reply-btn text-sm font-bold hover:underline focus:outline-none cursor-pointer">+<span class="text-sm mb-2">${comment.replies.length}</span></button>
         ${(comment.replies || []).map(renderComment).join('')}
       </div>
     </div>
@@ -300,7 +317,7 @@ async function postNewComment() {
 }
 
 async function postReply(parentId, text) {
-    await fetch(`${backend}/comments`, {
+    await fetch(`${backend}/pins/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: "include",
