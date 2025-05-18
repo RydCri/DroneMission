@@ -207,7 +207,7 @@ function bindPinModalEvents() {
     // Reply toggle
 
     document.querySelectorAll('.toggle-reply-btn').forEach(btn => {
-        const replyEL = btn.closest('[reply-tree]');
+        const replyEL = btn.closest('.reply-tree');
         const isExpanded = replyEL.classList.contains('max-h-full');
 
 
