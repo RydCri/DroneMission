@@ -185,25 +185,7 @@ export function setupProfile() {
         });
     }
 
-
-    // Notif toggle
-
-    document.querySelectorAll('.toggle-notifs-btn').forEach(btn => {
-        const notifEl = btn.closest('[notification-list]');
-        const isExpanded = notifEl.classList.contains('max-h-full');
-
-
-        btn.addEventListener('click', () => {
-            notifEl.classList.toggle('max-h-0', isExpanded);
-            notifEl.classList.toggle('max-h-full', !isExpanded);
-        });
-
-        btn.textContent = isExpanded ? '+' : '−';
-
-
-    });
-
-    // Comment toggle
+    // Notifs toggle
     const toggleBtn = document.getElementById('toggle-notifs-btn');
     if (toggleBtn) {
         toggleBtn.addEventListener('click', () => {
@@ -405,7 +387,7 @@ async function fetchNotifications() {
         list.innerHTML = '<p class="text-gray-500">No notifications</p>';
         console.log('No notifications.')
         return;
-    } else{
+    } else if (notifs.length !== 0) {
         notifContainer.appendChild(listToggle);
     }
 
