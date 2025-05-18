@@ -8,6 +8,7 @@
 <h1>Create an Account</h1>
 <form id="signup-form">
     <input type="email" placeholder="Email" name="email" required />
+    <input type="text" placeholder="Username" name="username" required>
     <input type="password" placeholder="Password" name="password" required />
     <button type="submit">Sign Up</button>
 </form>
@@ -16,12 +17,13 @@
     document.getElementById('signup-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = new FormData(e.target);
-        const res = await fetch('/signup', {
+        const res = await fetch('http://127.0.0.1:5000/auth/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 email: form.get('email'),
-                password: form.get('password')
+                password: form.get('password'),
+                username: form.get('username')
             })
         });
         if (res.ok) {
