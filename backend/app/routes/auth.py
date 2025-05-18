@@ -1,6 +1,6 @@
 from flask import Blueprint, request, session, jsonify
 from flask_login import login_user, logout_user, login_required, current_user, LoginManager
-from ..models import User
+from ..models import User, Notification
 from ..extensions import db
 
 auth = Blueprint('auth', __name__)
@@ -68,3 +68,30 @@ def profile():
         } for f in current_user.flights]
     }
     return jsonify(user_data)
+
+
+@auth.route('/notifications', methods=['POST'])
+@login_required
+def get_notifications():
+    notifs = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).all()
+    return jsonify([
+        {
+            'id': n.id,
+            'message': n.message,
+            'link': n.link,
+            'is_read': n.is_read,
+            'created_at': n.created_at.isoformat()
+        }
+        for n in notifs
+    ])
+
+
+@auth.route('/notifications/<int:notification_id>/read', methods=['POST'])
+@login_required
+def mark_notification_read(notification_id):
+    notif = Notification.query.get_or_404(notification_id)
+    if notif.user_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    notif.is_read = True
+    db.session.commit()
+    return jsonify({'success': True})
