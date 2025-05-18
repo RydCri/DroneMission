@@ -54,6 +54,7 @@
       <input type="text" name="username" placeholder="Username" class="border p-2 rounded" required />
       <input type="password" name="password" placeholder="Password" class="border p-2 rounded" required />
       <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 cursor-pointer">Login</button>
+      <a class="text-grey-500 hover:text-blue-500" href="/signup.html">Not a member? Signup!</a>
     </form>
   </div>
 </div>
@@ -104,7 +105,7 @@
     <form id="upload-form" class="flex flex-col gap-4" enctype="multipart/form-data">
       <input type="text" name="title" placeholder="Flight Title" class="border p-2 rounded" required />
       <label class="text-sm">GLB Model</label>
-      <input type="file" name="model" accept=".glb" class="border p-2 rounded cursor-pointer" required />
+      <input type="file" name="model" accept=".glb" class="border p-2 rounded cursor-pointer" />
       <label class="text-sm">Flight Scans Thumbnail</label>
       <input type="file" name="scan" accept="image/png" class="border p-2 rounded cursor-pointer" required />
       <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 cursor-pointer">Upload</button>
