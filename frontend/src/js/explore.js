@@ -56,7 +56,7 @@ function showFlightModal(flight) {
     document.getElementById('flightModal').classList.remove('hidden');
     document.getElementById('flightModalContent').querySelector('h2').innerText = flight.title;
     document.getElementById('flightUser').innerText = flight.username;
-    document.getElementById('flightScan').src = flight.scanPath;
+    document.getElementById('flightScan').src = backend + flight.scanPath;
     document.getElementById('flightTags').innerText = flight.tags.join(', ');
 }
 
