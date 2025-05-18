@@ -3,7 +3,9 @@ module.exports = {
         './src/**/*.js',
     ],
     theme: {
-        extend: {},
+        extend: {
+            backgroundOpacity: ['active']
+        },
     },
     plugins: [],
 }
