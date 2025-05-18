@@ -10,6 +10,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
+    notifications = db.relationship('Notification', back_populates='user', lazy='dynamic', cascade="all, delete-orphan")
 
     flights = db.relationship('Flight', backref='user', lazy=True)
 
@@ -116,3 +117,14 @@ class CommentLike(db.Model):
     comment = db.relationship('Comment', backref='likes')
 
     __table_args__ = (db.UniqueConstraint('user_id', 'comment_id', name='unique_comment_like'),)
+
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message = db.Column(db.String(255), nullable=False)
+    link = db.Column(db.String(255))
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', back_populates='notifications')
