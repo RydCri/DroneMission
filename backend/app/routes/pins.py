@@ -150,8 +150,8 @@ def get_user_pins():
     return jsonify({'pins': user_pins}), 200
 
 
-@pins.route('/<int:pin_id>/comments', methods=['POST'])
 @login_required
+@pins.route('/<int:pin_id>/comments', methods=['POST'])
 def add_comment(pin_id):
     data = request.get_json()
     comment_text = data.get('text')
