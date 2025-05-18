@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify, session, current_app, render_template_string
 from flask_login import current_user, login_required
-from ..models import Pin, PinImage, Tag, Comment, CommentLike
+from ..models import Pin, PinImage, Tag, Comment, CommentLike, Notification
 from ..extensions import db
 from werkzeug.utils import secure_filename
 
@@ -244,6 +244,17 @@ def post_comment():
 
     db.session.add(comment)
     db.session.commit()
+
+    # Notifications
+
+    if parent_comment := Comment.query.get(data.get("parent_id")):
+        if parent_comment.user_id != current_user.id:
+            notif = Notification(
+                user_id=parent_comment.user_id,
+                message=f"{current_user.username} replied to your comment.",
+                link=f"/pins/{pin_id}#comment-{comment.id}"
+            )
+            db.session.add(notif)
 
     # Render minimal comment HTML
     comment_html = render_template_string('''
