@@ -102,6 +102,7 @@ async function loadProfile() {
     if(!profileList){
         console.log("profileList NULL")
     }
+
     profileList.innerHTML = ''
     profileList.innerHTML += `<div class="flex flex-row"><button class="close-button basis-32" data-modal-target="flight-modal">✖</button> <h2 id="user-flights" class="basis-150 text-xl font-semibold mb-4"></h2></div>`
     const uploadDiv = document.createElement('div')
@@ -150,6 +151,7 @@ export function setupProfile() {
     document.addEventListener('user-logged-in', () => {
         console.log('Profile fetched')
         loadProfile();
+        fetchNotifications();
     });
 
     const profileBtn = document.getElementById('profile-button');
@@ -184,8 +186,41 @@ export function setupProfile() {
     }
 
 
+    // Notif toggle
 
-// edit button logic
+    document.querySelectorAll('.toggle-notifs-btn').forEach(btn => {
+        const notifEl = btn.closest('[notification-list]');
+        const isExpanded = notifEl.classList.contains('max-h-full');
+
+
+        btn.addEventListener('click', () => {
+            notifEl.classList.toggle('max-h-0', isExpanded);
+            notifEl.classList.toggle('max-h-full', !isExpanded);
+        });
+
+        btn.textContent = isExpanded ? '+' : '−';
+
+
+    });
+
+    // Comment toggle
+    const toggleBtn = document.getElementById('toggle-notifs-btn');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            const hydrate = document.getElementById('notification-list');
+
+            const isExpanded = hydrate.classList.contains('max-h-full');
+
+            hydrate.classList.toggle('max-h-0', isExpanded);
+            hydrate.classList.toggle('max-h-full', !isExpanded);
+
+            toggleBtn.textContent = isExpanded ? '+' : '−';
+        });
+    }
+
+
+
+    // edit button logic
         document.querySelectorAll('.edit-flight').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const id = btn.dataset.id;
@@ -315,7 +350,6 @@ export function setupProfile() {
         }
     });
 
-
 }
 
 export function setupUploadForm() {
@@ -349,4 +383,47 @@ export function setupUploadForm() {
             showToast('Upload failed.','error');
         }
     });
+}
+
+
+async function fetchNotifications() {
+    const res = await fetch(`${backend}/auth/notifications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: "include",
+    });
+    console.log('Fetching User notifications.')
+    const notifs = await res.json();
+    const list = document.getElementById('notification-list');
+    const notifContainer = document.getElementById('notification-container');
+    const listToggle = document.createElement('div');
+    listToggle.innerHTML = `<button id="toggle-notifs-btn" class="text-sm text-white font-bold hover:underline focus:outline-none cursor-pointer">+ <span class="text-sm mb-2">${notifs.length === 0 ? '' : notifs.length }</span></button>`;
+
+    list.innerHTML = '';
+
+    if (notifs.length === 0) {
+        list.innerHTML = '<p class="text-gray-500">No notifications</p>';
+        console.log('No notifications.')
+        return;
+    } else{
+        notifContainer.appendChild(listToggle);
+    }
+
+    for (const n of notifs) {
+        const item = document.createElement('div');
+        item.className = `p-2 max-h-full rounded ${n.is_read ? 'bg-gray-100' : 'bg-yellow-100'}`;
+        item.innerHTML = `
+      <p>${n.message}</p>
+      ${n.link ? `<a href="${n.link}" class="text-blue-600 underline">View</a>` : ''}
+    `;
+        item.addEventListener('click', async () => {
+            await fetch(`${backend}/auth/notifications/${n.id}/read`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: "include",
+            });
+            fetchNotifications(); // re-render
+        });
+        list.appendChild(item);
+    }
 }
