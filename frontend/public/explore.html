@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Explore Flights</title>
+    <script defer src="src/js/explore.js"></script>
+    <link href="src/styles.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+<!-- Header -->
+<div class="p-6 bg-white shadow">
+    <div class="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        <h1 class="text-2xl font-bold">Explore Flights</h1>
+        <div class="flex flex-col md:flex-row gap-2">
+            <input id="searchInput" type="text" placeholder="Search by user or title" class="px-4 py-2 rounded border border-gray-300 focus:outline-none">
+            <input id="tagInput" type="text" placeholder="Filter by tag" class="px-4 py-2 rounded border border-gray-300 focus:outline-none">
+        </div>
+    </div>
+</div>
+
+<!-- Flights Grid -->
+<div id="flightsContainer" class="container mx-auto p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <!-- Flight cards will be injected here -->
+</div>
+
+<!-- Loading Spinner -->
+<div id="loadingSpinner" class="text-center py-6 hidden">
+    <span class="text-gray-500">Loading more flights...</span>
+</div>
+
+<!-- Flight Detail Modal (cutout) -->
+<div id="flightModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-xl w-full relative">
+        <button id="closeModal" class="absolute top-2 right-2 text-gray-500 hover:text-black">&times;</button>
+        <div id="flightModalContent">
+            <!-- Fill in dynamically -->
+            <h2 class="text-xl font-bold mb-2">Flight Title</h2>
+            <p class="text-sm text-gray-600">Uploaded by: <span id="flightUser"></span></p>
+            <div class="my-4">
+                <img id="flightScan" class="w-full h-auto rounded shadow" src="" alt="Scan preview">
+            </div>
+            <p class="text-sm text-gray-600">Tags: <span id="flightTags"></span></p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
