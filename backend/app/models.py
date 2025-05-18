@@ -32,6 +32,7 @@ class Flight(db.Model):
     mime_model = db.Column(db.String(64))
     mime_scan = db.Column(db.String(64))
     uploaded_at = db.Column(db.DateTime)
+    tags = db.relationship('Tag', secondary='flight_tags', backref=db.backref('flights', lazy='dynamic'))
 
 
 class Pin(db.Model):
@@ -84,6 +85,11 @@ comment_tags = db.Table('comment_tags',
                         db.Column('comment_id', db.Integer, db.ForeignKey('comment.id'), primary_key=True),
                         db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True)
                         )
+
+flight_tags = db.Table('flight_tags',
+                       db.Column('flight_id', db.Integer, db.ForeignKey('flight.id', primary_key=True)),
+                       db.Column('tag_id', db.Integer, db.ForeignKey('tag.id', primary_key=True))
+                       )
 
 
 class Like(db.Model):
