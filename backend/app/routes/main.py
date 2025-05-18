@@ -32,12 +32,14 @@ def get_user_flights():
     return jsonify({'flights': user_flights}), 200
 
 
+@login_required
 @main.route('/flights/upload', methods=['POST'])
 def upload_flight():
-    if 'user_id' not in session:
+    user = current_user
+    if not user or not user.is_authenticated:
         return jsonify({'error': 'Unauthorized'}), 401
 
-    user_id = session['user_id']
+    user_id = user.id
     title = request.form.get('title')
     model = request.files.get('model')
     scan = request.files.get('scan')
@@ -208,5 +210,4 @@ def secure_download(filename):
     user_id = session.get('user_id')
     safe_path = os.path.join(current_app.config['UPLOAD_FOLDER'], f"user_{user_id}")
     return send_from_directory(safe_path, filename, as_attachment=True)
-
 
