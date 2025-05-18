@@ -150,18 +150,56 @@ def delete_flight(flight_id):
     db.session.commit()
     return jsonify({'message': 'Flight deleted successfully'})
 
-@main.route('/data', methods=['GET'])
-def get_data():
-    data = {
-        "message": "Hello from Flask!",
-        "status": "success"
-    }
-    return jsonify(data)
+
+@main.route('/flights/explore', methods=['GET'])
+def explore_flights():
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    query = request.args.get('query', '', type=str).strip().lower()
+    tag_filter = request.args.get('tag', '', type=str).strip().lower()
+
+    flights_query = db.session.query(Flight).join(User)
+
+    # Join tags in a separate table
+    if query:
+        flights_query = flights_query.filter(
+            db.or_(
+                db.func.lower(Flight.title).like(f'%{query}%'),
+                db.func.lower(User.username).like(f'%{query}%'),
+                db.func.lower(Pin.title).like(f'%{query}%')
+            )
+        )
+
+    if tag_filter:
+        # Comma-separated string field for Tags
+        flights_query = flights_query.filter(
+            db.func.lower(Flight.tags).like(f'%{tag_filter}%')
+        )
+
+    flights_query = flights_query.order_by(Flight.uploaded_at.desc())
+
+    pagination = flights_query.paginate(page=page, per_page=per_page, error_out=False)
+
+    flights = [
+        {
+            'id': f.id,
+            'title': f.title,
+            'username': f.user.username,
+            'glbPath': f"/uploads/user_{f.user_id}/models/{os.path.basename(f.glb_path)}",
+            'scanPath': f"/uploads/user_{f.user_id}/scans/{os.path.basename(f.scan_path)}",
+            'uploadedAt': f.uploaded_at.isoformat() if f.uploaded_at else None,
+            'tags': f.tags.split(',') if f.tags else []
+        }
+        for f in pagination.items
+    ]
+
+    return jsonify({
+        'flights': flights,
+        'totalPages': pagination.pages,
+        'currentPage': page
+    })
 
 
-@main.route('/mission', methods=['GET'])
-def get_missions():
-    return send_from_directory(os.getcwd(), './static/missions.json')
 
 # Download link for .glb
 @main.route('/download/<path:filename>')
