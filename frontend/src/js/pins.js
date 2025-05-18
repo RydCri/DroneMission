@@ -30,8 +30,7 @@ export async function loadPins() {
         <div><strong>Tags:</strong> ${pin.tags.join(', ')}</div>
         <div> ❤️ ${pin.likes}</div>
         <div class="p-4 mb-1 text-md comments">
-          <h3>Comments ${([pin.comments]).length}</h3>
-          <div id="comments-list">${pin.comments}</div>
+          <h3>Chatter: ${pin.comments}</h3>
         </div>
 
       </div>
@@ -85,10 +84,10 @@ async function pinDetail(pinId) {
       ${imageHTML}
       <p class="text-gray-700 mb-4">${data.description}</p>
       <div class="flex flex-wrap gap-2 mb-4">${tagHTML}</div>
-      <div class="flex items-center mb-6 text-sm text-gray-500">
+      <div class="flex items-center mb-2 text-sm text-gray-500">
         <button class="hover:text-red-500">❤️ ${data.likes} likes</button>
       </div>
-        <div class="space-y-4 mb-4" id="pin-comments">
+        <div class="space-y-2 mb-2" id="pin-comments">
           <div class="flex items-center">
             <h3 class="text-lg font-semibold">Comments ${data.comments.length}</h3>
             <button id="comments-toggle" class="text-lg font-bold hover:underline focus:outline-none cursor-pointer">+</button>
