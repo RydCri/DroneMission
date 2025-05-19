@@ -1,15 +1,9 @@
 import {ModalManager} from "./modal.js";
 import {checkLoginStatus} from "./auth.js";
 import {showToast} from './toast'
-import {fetchSession, logoutUser} from "./session.js";
+import {logoutUser} from "./session.js";
 
-(async () => {
-    const session = await fetchSession();
-    if (!session) return;
 
-    console.log('User:', session.username, 'ID:', session.user_id);
-    // window.currentUserId
-})();
 
 const backend = 'http://127.0.0.1:5000'
 async function loadUserPins() {
@@ -41,20 +35,30 @@ async function loadUserPins() {
         </div>
     `;
 
-    const uploadDiv = document.createElement('div');
-    uploadDiv.innerHTML = `
+    const uploadPinBtn = document.createElement('button');
+    uploadPinBtn.innerHTML = `
         <button id="upload-pin-button" class="mt-4 w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700 cursor-pointer">Publish New Pin</button>
     `;
+    if (uploadPinBtn) {
+        uploadPinBtn.addEventListener('click', () => {
+            ModalManager.toggle('profile-modal')
+            ModalManager.toggle('pin-modal')
+            ModalManager.toggle('pin-upload-modal');
+        });
+    }
+    pinList.appendChild(uploadPinBtn);
 
-    if (pins)
-    pins.forEach(pin => {
-        const pinItem = document.createElement('div');
-        pinItem.classList.add('profile-pin');
 
-        // Render the first image if available
-        const firstImage = pin.images && pin.images.length > 0 ? `${backend}${pin.images[0]}` : '/user_icon.png';
+    if (pins) {
+        pins.forEach(pin => {
+            const pinItem = document.createElement('div');
+            pinItem.classList.add('profile-pin');
 
-        pinItem.innerHTML = `
+
+            // Render the first image if available
+            const firstImage = pin.images && pin.images.length > 0 ? `${backend}${pin.images[0]}` : '/user_icon.png';
+
+            pinItem.innerHTML = `
             <div class="pin-info flex items-center space-x-4">
                 <img class="w-24 h-24 object-cover rounded" src="${firstImage}" alt="${pin.title}">
                 <div class="flex-1">
@@ -63,29 +67,52 @@ async function loadUserPins() {
                     <div class="text-sm text-gray-500">ID: ${pin.id}</div>
                 </div>
             </div>
-            <div class="dropdown mt-2">
-                <button class="dropdown-toggle">⋯</button>
-                <div class="dropdown-menu">
+                <div class="dropdown mt-2">
+                <div class="dropdown-toggle">⋯</div>
+                    <div class="dropdown-menu">
                     <button class="edit-pin" data-id="${pin.id}">Edit</button>
                     <button class="delete-pin" data-id="${pin.id}">Delete</button>
+                    </div>
                 </div>
-            </div>
-        `;
+`;
 
-        pinList.append(pinItem);
-    });
 
-    pinList.appendChild(uploadDiv);
-    const uploadPinBtn = document.getElementById('upload-pin-button')
-    if (uploadPinBtn) {
-        uploadPinBtn.addEventListener('click', () => {
-            ModalManager.toggle('profile-modal')
-            ModalManager.toggle('pin-modal')
-            ModalManager.toggle('pin-upload-modal');
+            pinList.append(pinItem);
         });
     }
 
+
+
+
 }
+
+
+async function editPin(pinId) {
+
+}
+
+async function deletePin(pinId) {
+// Delete Pin button
+    const res = await fetch(`${backend}/pins/${pinId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+    });
+
+    if (!res.ok) {
+        showToast('Failed to delete pin','error');
+    }
+    if (res.status === 401) {
+        showToast('Session lost, please login.','error');
+        // show login modal on unauthorized
+        ModalManager.toggle('login-modal');
+    } else {
+        showToast("Pin deleted",'success')
+    }
+}
+
 
 async function loadProfile() {
     console.log('Fetching User Flights');
@@ -143,16 +170,29 @@ async function loadProfile() {
 
     await checkLoginStatus()
 
-    loadUserPins()
+    await loadUserPins()
 }
 
 
 export function setupProfile() {
-    document.addEventListener('user-logged-in', () => {
+    document.addEventListener('user-logged-in', async () => {
         console.log('Profile fetched')
-        loadProfile();
-        fetchNotifications();
-    });
+        await loadUserPins();
+        await fetchNotifications();
+
+        // Delete Pin button
+
+        document.querySelectorAll('.delete-pin').forEach(btn => {
+            btn.addEventListener('click', () => {
+                console.log('delete button')
+                const id = btn.dataset.id;
+                deletePin(id);
+                showToast("Pin Deleted", "success");
+                ModalManager.toggle('pin-modal-content');
+            });
+        });
+
+
 
     const profileBtn = document.getElementById('profile-button');
     if (profileBtn) {
@@ -162,10 +202,10 @@ export function setupProfile() {
     }
 
     const logoutBtn = document.getElementById('logout-button');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async () => {
-                    await logoutUser();
-                    showToast('Logged out Successfully, Refreshing...', 'success')
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            await logoutUser();
+            showToast('Logged out Successfully, Refreshing...', 'success')
 
         });
     }
@@ -178,7 +218,7 @@ export function setupProfile() {
     }
 
     // If user has pins, show user's pin modal, else 'Your Pins' button shows upload-pin-form
-        const pinBtn = document.getElementById('pin-button');
+    const pinBtn = document.getElementById('pin-button');
     if (pinBtn) {
         pinBtn.addEventListener('click', () => {
             ModalManager.toggle('pin-modal');
@@ -198,45 +238,44 @@ export function setupProfile() {
 
             toggleBtn.textContent = isExpanded ? '+' : '−';
         });
-    }
+        }
 
 
 
-    // edit button logic
-        document.querySelectorAll('.edit-flight').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const id = btn.dataset.id;
-                const currentTitle = btn.closest('.profile-flight').querySelector('.flight-title').innerText;
-                const newTitle = prompt('Enter a new title for the flight:', currentTitle);
-                if (!newTitle) return;
+    // Edit Flights button
 
-                if (newTitle === currentTitle) {
-                    showToast("Please Choose a new Title!",'error')
-                    return;
-                }
-                const res = await fetch(`${backend}/api/flights/${id}`, {
-                    method: 'PUT',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({title: newTitle})
-                });
+    document.querySelectorAll('.edit-flight').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.dataset.id;
+            const currentTitle = btn.closest('.profile-flight').querySelector('.flight-title').innerText;
+            const newTitle = prompt('Enter a new title for the flight:', currentTitle);
+            if (!newTitle) return;
 
-                if (res.ok) {
-                    loadProfile(); // Refresh
-                }
-                if (res.status === 401) {
-                    showToast('Session lost, please login.','error');
-                    // show login modal on unauthorized
-                    ModalManager.toggle('login-modal');
-                } else {
-                    showToast('Failed to update flight','error');
-                }
+            if (newTitle === currentTitle) {
+                showToast("Please Choose a new Title!", 'error')
+                return;
+            }
+            const res = await fetch(`${backend}/api/flights/${id}`, {
+                method: 'PUT',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({title: newTitle})
             });
+
+            if (res.ok) {
+                loadProfile(); // Refresh
+            }
+            if (res.status === 401) {
+                showToast('Session lost, please login.', 'error');
+                // show login modal on unauthorized
+                ModalManager.toggle('login-modal');
+            } else {
+                showToast('Failed to update flight', 'error');
+            }
         });
-
-
+    });
 
 
     // Profile Modal Dropdowns
@@ -271,18 +310,18 @@ export function setupProfile() {
 
                 if (res.ok) {
                     loadProfile();
-                    showToast(`Flight: ${id} deleted`,'success');
+                    showToast(`Flight: ${id} deleted`, 'success');
                 }
                 if (res.status === 401) {
-                    showToast('Session lost, please login.','error');
+                    showToast('Session lost, please login.', 'error');
                     // show login modal on unauthorized
                     ModalManager.toggle('login-modal');
-                }else {
-                    showToast('Failed to delete flight.','error');
+                } else {
+                    showToast('Failed to delete flight.', 'error');
                 }
             } catch (err) {
                 console.error('Delete failed:', err);
-                showToast(`Something went wrong while deleting.${err}`,'error');
+                showToast(`Something went wrong while deleting.${err}`, 'error');
             }
         }
     });
@@ -315,8 +354,8 @@ export function setupProfile() {
         const res = await fetch(`${backend}/api/flights/${id}`, {
             method: 'PUT',
             credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title: newTitle })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({title: newTitle})
         });
 
         if (res.ok) {
@@ -324,14 +363,14 @@ export function setupProfile() {
             await loadProfile();
         }
         if (res.status === 401) {
-            showToast('Session lost, please login.','error');
+            showToast('Session lost, please login.', 'error');
             // show login modal on unauthorized
             ModalManager.toggle('login-modal');
-        }else {
-            showToast('Update failed','error');
+        } else {
+            showToast('Update failed', 'error');
         }
     });
-
+});
 }
 
 export function setupUploadForm() {
@@ -354,7 +393,6 @@ export function setupUploadForm() {
             loadProfile();
             showToast('Flight uploaded successfully!','success');
             ModalManager.hide('upload-modal');
-
             uploadForm.reset();
         }
         if (res.status === 401) {
@@ -374,7 +412,7 @@ async function fetchNotifications() {
         headers: { 'Content-Type': 'application/json' },
         credentials: "include",
     });
-    console.log('Fetching User notifications.')
+    console.log(`Fetching User notifications.`)
     const notifs = await res.json();
     const list = document.getElementById('notification-list');
     const notifContainer = document.getElementById('notification-container');
