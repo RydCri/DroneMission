@@ -12,7 +12,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(200), nullable=False)
     notifications = db.relationship('Notification', back_populates='user', lazy='dynamic', cascade="all, delete-orphan")
 
-    flights = db.relationship('Flight', backref='user', lazy=True)
+    flights = db.relationship('Flight', backref='user', lazy=True, cascade="all, delete-orphan")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
@@ -38,14 +38,14 @@ class Flight(db.Model):
 class Pin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    user = db.relationship('User', backref='pins')
+    user = db.relationship('User', backref=db.backref('pins', lazy='dynamic'))
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     glb_path = db.Column(db.String(255), nullable=True)  # Featured 3D model
     images = db.relationship('PinImage', backref='pin', lazy=True, cascade="all, delete-orphan")
     tags = db.relationship('Tag', secondary='pin_tags', back_populates='pins')
-    comments = db.relationship('Comment', back_populates='pin')
+    comments = db.relationship('Comment', back_populates='pin', cascade='all, delete-orphan')
     likes = db.relationship('Like', backref='pin', lazy=True, cascade="all, delete-orphan")
 
     def to_dict(self):
