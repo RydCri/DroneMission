@@ -46,10 +46,11 @@ def get_pins():
 
 @pins.route('/upload', methods=['POST'])
 def upload_pin():
-    if 'user_id' not in session:
+    user = current_user
+    if not user or not user.is_authenticated:
         return jsonify({'error': 'Unauthorized'}), 401
 
-    user_id = session['user_id']
+    user_id = user.id
     user_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], f'user_{user_id}')
     models_folder = os.path.join(user_folder, 'models')
     images_folder = os.path.join(user_folder, 'images')
@@ -128,9 +129,9 @@ def get_user_pins():
     if not user or not user.is_authenticated:
         return jsonify({'error': 'Unauthorized'}), 401
 
+    pins_query = user.pins.order_by(Pin.created_at.desc())
+
     # Use base filename to construct public paths
-    pins_query = Pin.query.get(user.id)
-    pins_query = pins_query.query.order_by(Pin.created_at.desc())
     user_pins = []
     for pin in pins_query:
         user_pins.append({
