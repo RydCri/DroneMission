@@ -132,13 +132,16 @@ async function loadProfile() {
 
     profileList.innerHTML = ''
     profileList.innerHTML += `<div class="flex flex-row"><button class="close-button basis-32" data-modal-target="flight-modal">✖</button> <h2 id="user-flights" class="basis-150 text-xl font-semibold mb-4"></h2></div>`
-    const uploadDiv = document.createElement('div')
-    uploadDiv.innerHTML = `<button id="upload-flight-button" class="mt-4 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 cursor-pointer">Upload New Flight</button>`
-    flights.forEach(f => {
-        const flightItem = document.createElement('div');
-        flightItem.classList.add('profile-flight');
+    const uploadDiv = document.createElement('div');
+    uploadDiv.innerHTML = `<h3 class="mt-2 py-2 font-bold">Your Flights</h3><button id="upload-flight-button" class="mt-4 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 cursor-pointer">Upload New Flight</button>`
+    profileList.appendChild(uploadDiv);
 
-        flightItem.innerHTML = `
+    if ( flights ) {
+        flights.forEach(f => {
+            const flightItem = document.createElement('div');
+            flightItem.classList.add('profile-flight');
+
+            flightItem.innerHTML = `
             <div class="flight-info">
                 <img class="thumbnail" src="${backend}${f.scanPath}" alt="${f.title}">
                 <div>
@@ -155,28 +158,22 @@ async function loadProfile() {
             </div>
         `;
 
-        profileList.append(flightItem);
-    });
-    profileList.appendChild(uploadDiv)
+            profileList.append(flightItem);
+        });
+    }
     const uploadBtn = document.getElementById('upload-flight-button');
     if (uploadBtn) {
         uploadBtn.addEventListener('click', () => {
             ModalManager.toggle('upload-modal')
         });
     }
-
-    const userFlights = document.getElementById('user-flights')
-    if(!userFlights) return;
-
-    await checkLoginStatus()
-
-    await loadUserPins()
 }
 
 
 export function setupProfile() {
     document.addEventListener('user-logged-in', async () => {
         console.log('Profile fetched')
+        await loadProfile();
         await loadUserPins();
         await fetchNotifications();
 
@@ -383,7 +380,7 @@ export function setupUploadForm() {
 
         const formData = new FormData(uploadForm);
 
-        const res = await fetch('http://127.0.0.1:5000/api/flights/upload', {
+        const res = await fetch(`${backend}/api/flights/upload`, {
             method: 'POST',
             credentials: 'include',
             body: formData
