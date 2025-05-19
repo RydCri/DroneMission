@@ -7,6 +7,8 @@ import {ModalManager} from "./modal.js";
 let currentPinId = null;
 const backend = 'http://127.0.0.1:5000'
 export async function loadPins() {
+    // These pins populate the homepage
+
     const res = await fetch(`${backend}/pins`);
     const data = await res.json();
     const grid = document.getElementById('pin-grid');
@@ -64,7 +66,6 @@ async function pinDetail(pinId) {
     // Format images (carousel)
     const imageHTML = data.images.map(img => {
         const filename = img.url.split('/').pop(); // extract filename
-        const userId = data.user.id; // refactored to use user passed to Pin dict
         return `<img src="${backend}/uploads/user_${data.user_id}/images/${filename}" alt="${data.title}" class="pin-image rounded mb-4 w-full max-h-64 object-cover" />`;
     }).join('');
 
@@ -126,14 +127,7 @@ function timeAgo(dateStr) {
 document.getElementById('pinForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     await (async () => {
-        const session = await fetchSession();
-        if (session)
-            console.log('User:', session.username, 'ID:', session.user_id);
-        if (!session) return;
 
-        console.log('LoggedIn: False');
-
-        const user_id = window.currentUserId;
         const form = e.target;
         const formData = new FormData();
 
@@ -162,7 +156,7 @@ document.getElementById('pinForm').addEventListener('submit', async (e) => {
             const data = await res.json();
 
             if (res.ok) {
-                showToast('✅ Pin published successfully!', 'success')
+                showToast('✅ Pin published!', 'success')
                 form.reset();
             }
             if (res.status === 401) {
@@ -327,7 +321,7 @@ async function postReply(parentId, text) {
 }
 
 async function likeComment(commentId, value) {
-    await fetch(`${backend}/comments/${commentId}/like`, {
+    await fetch(`${backend}/pins/comments/${commentId}/like`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: "include",
