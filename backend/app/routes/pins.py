@@ -190,7 +190,7 @@ def get_pin(pin_id):
 
     def serialize_comment(comment):
         likes = sum(1 for l in comment.likes)
-        dislikes = sum(1 for l in comment.likes) * -1  # Or change to count negative votes if you implement them
+        dislikes = sum(1 for l in comment.likes) * -1  # TODO: change to display negative votes
 
         return {
             'id': comment.id,
@@ -215,6 +215,20 @@ def get_pin(pin_id):
         'likes': len(pin.likes),
         'comments': [serialize_comment(c) for c in pin.comments if c.parent_id is None]
     })
+
+
+@pins.route('/<int:pin_id>', methods=['DELETE'])
+@login_required
+def delete_pin(pin_id):
+    pin = Pin.query.get_or_404(pin_id)
+
+    if pin.user_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    db.session.delete(pin)
+    db.session.commit()
+
+    return jsonify({'message': 'Pin deleted successfully'}), 200
 
 
 @pins.route('/comments', methods=['POST'])
@@ -251,6 +265,7 @@ def post_comment():
 
     if parent_comment := Comment.query.get(data.get("parent_id")):
         if parent_comment.user_id != current_user.id:
+            print("Notification sent")
             notif = Notification(
                 user_id=parent_comment.user_id,
                 message=f"{current_user.username} replied to your comment.",
