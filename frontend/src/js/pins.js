@@ -25,7 +25,7 @@ export async function loadPins() {
         <p class="text-sm text-gray-600">${pin.description || ''}</p>
       </div>
       <div class="carousel-wrapper w-full overflow-x-auto flex gap-2 px-4 py-2 scroll-smooth snap-x snap-mandatory">
-        ${pin.images.map(img => `<img src="${backend}${img}" class="pin-thumbnail h-24 aspect-video rounded object-cover flex-shrink-0 snap-start hover:scale-105 transition-transform duration-200 ease-in-out" alt="${backend}${img}">`)}
+        ${pin.images.map(img => `<img src="${backend}${img}" class="pin-thumbnail h-24 aspect-video rounded object-cover cursor-pointer flex-shrink-0 snap-start hover:scale-105 transition-transform duration-200 ease-in-out" alt="${backend}${img}">`)}
       </div>
       <div class="px-4 pb-4 flex flex-col gap-1 text-sm text-gray-600">
         <div><strong>By:</strong> ${pin.username}</div>
@@ -66,7 +66,7 @@ async function pinDetail(pinId) {
     // Format images (carousel)
     const imageHTML = data.images.map(img => {
         const filename = img.url.split('/').pop(); // extract filename
-        return `<img src="${backend}/uploads/user_${data.user_id}/images/${filename}" alt="${data.title}" class="pin-thumbnail pin-image h-24 aspect-video rounded object-cover flex-shrink-0 snap-start hover:scale-105 transition-transform duration-200 ease-in-out" />`;
+        return `<img src="${backend}/uploads/user_${data.user_id}/images/${filename}" alt="${data.title}" class="pin-thumbnail pin-image h-24 aspect-video rounded object-cover flex-shrink-0 snap-start cursor-pointer hover:scale-105 transition-transform duration-200 ease-in-out" />`;
     }).join('');
 
 
