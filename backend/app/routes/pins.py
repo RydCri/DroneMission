@@ -2,9 +2,9 @@ import os
 import re
 import uuid
 from datetime import datetime, timezone
-from flask import Blueprint, request, jsonify, session, current_app, render_template_string
+from flask import Blueprint, request, jsonify, current_app, render_template_string
 from flask_login import current_user, login_required
-from ..models import Pin, PinImage, Tag, Comment, CommentLike, Notification, User
+from ..models import Pin, PinImage, Tag, Comment, CommentLike, Notification, Like
 from ..extensions import db
 from werkzeug.utils import secure_filename
 
@@ -33,7 +33,7 @@ def get_pins():
                 f"/uploads/user_{pin.user.id}/images/{os.path.basename(img.image_path)}" for img in pin.images
             ],
             'tags': [tag.name for tag in pin.tags],
-            'likes': pin.likes
+            'likes': sum(like.value for like in pin.likes)
         })
 
     return jsonify({
@@ -134,6 +134,11 @@ def get_user_pins():
     # Use base filename to construct public paths
     user_pins = []
     for pin in pins_query:
+        user_vote = None
+        if current_user.is_authenticated:
+            user_like = Like.query.filter_by(user_id=current_user.id, pin_id=pin.id).first()
+            if user_like:
+                user_vote = user_like.value
         user_pins.append({
             'id': pin.id,
             'title': pin.title,
@@ -145,7 +150,8 @@ def get_user_pins():
                 f"/uploads/user_{pin.user.id}/images/{os.path.basename(img.image_path)}" for img in pin.images
             ],
             'tags': [tag.name for tag in pin.tags],
-            'likes': f"{[pin.likes].count}"
+            'likes': f"{[pin.likes].count}",
+            "user_vote": user_vote
         })
 
     return jsonify({'pins': user_pins}), 200
@@ -188,10 +194,15 @@ def get_comments(pin_id):
 @pins.route('/<int:pin_id>')
 def get_pin(pin_id):
     pin = Pin.query.get_or_404(pin_id)
+    user_vote = None
+    if current_user.is_authenticated:
+        user_like = Like.query.filter_by(user_id=current_user.id, pin_id=pin.id).first()
+        if user_like:
+            user_vote = user_like.value
 
     def serialize_comment(comment):
         likes = sum(1 for l in comment.likes)
-        dislikes = sum(1 for l in comment.likes) * -1  # TODO: change to display negative votes
+        dislikes = sum(1 for l in comment.likes) * -1
 
         return {
             'id': comment.id,
@@ -214,8 +225,10 @@ def get_pin(pin_id):
         'images': [{'url': img.image_path} for img in pin.images],
         'tags': [tag.name for tag in pin.tags],
         'likes': len(pin.likes),
-        'comments': [serialize_comment(c) for c in pin.comments if c.parent_id is None]
+        'comments': [serialize_comment(c) for c in pin.comments if c.parent_id is None],
+        'user_vote': user_vote
     })
+
 
 
 @pins.route('/<int:pin_id>', methods=['DELETE'])
@@ -319,3 +332,35 @@ def like_comment(comment_id):
     dislikes = sum(1 for l in comment.likes if l.value == -1)
 
     return jsonify({'likes': likes, 'dislikes': dislikes})
+
+
+@pins.route('/<int:pin_id>/like', methods=['POST'])
+@login_required
+def like_pin(pin_id):
+    user_id = current_user.id
+    data = request.get_json()
+    value = int(data.get('value'))
+    print(f"{value} like from user: {user_id}, pin: {pin_id}")
+
+    if value not in (1, -1):
+        return jsonify({'error': 'Invalid value'}), 400
+
+    like = Like.query.filter_by(user_id=user_id, pin_id=pin_id).first()
+
+    if like:
+        if like.value == value:
+            # Same vote again: remove it (toggle off)
+            db.session.delete(like)
+        else:
+            # Change vote
+            like.value = value
+    else:
+        like = Like(user_id=user_id, pin_id=pin_id, value=value)
+        db.session.add(like)
+
+    db.session.commit()
+
+    likes = Like.query.filter_by(pin_id=pin_id, value=1).count()
+    dislikes = Like.query.filter_by(pin_id=pin_id, value=-1).count()
+
+    return jsonify({'likes': likes, 'dislikes': dislikes}), 200
