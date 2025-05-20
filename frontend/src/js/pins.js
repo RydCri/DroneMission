@@ -86,8 +86,12 @@ async function pinDetail(pinId) {
       <p class="text-gray-700 mb-4">${data.description}</p>
       <div class="flex flex-wrap gap-2 mb-4">${tagHTML}</div>
       <div class="flex items-center mb-2 text-sm text-gray-500">
-        <button class="hover:text-red-500">❤️ ${data.likes} likes</button>
+        <button class="hover:text-red-500 cursor-pointer">❤️ ${data.likes} likes</button>
       </div>
+      <div class="pin-card flex flex-wrap gap-2 mb-4" data-id="${data.id}">
+        <button class="pin-like-btn cursor-pointer hover:border" data-value="1">👍</button>
+        <button class="pin-like-btn cursor-pointer hover:border" data-value="-1">👎</button>
+       </div>
         <div class="space-y-2 mb-2" id="pin-comments">
           <div class="flex items-center">
             <h3 class="text-lg font-semibold">Comments ${data.comments.length}</h3>
@@ -163,8 +167,6 @@ document.getElementById('pinForm').addEventListener('submit', async (e) => {
                 showToast('Session lost, please login.', 'error');
                 // show login modal on unauthorized
                 ModalManager.toggle('login-modal');
-            } else {
-                showToast(`❌ Error: ${data.error}`, 'error')
             }
         } catch (err) {
             console.error(err);
@@ -268,6 +270,31 @@ function bindPinModalEvents() {
             document.getElementById('image-overlay').classList.add('hidden');
         }
     });
+
+    // Pin likes
+
+    document.querySelectorAll('.pin-like-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const pinId = btn.closest('.pin-card').dataset.id;
+            const value = parseInt(btn.dataset.value);
+
+            const res = await fetch(`${backend}/pins/${pinId}/like`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ value }),
+                credentials: "include"
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                btn.closest('.pin-card').querySelector('.pin-like-btn[data-value="1"]').innerText = `👍 ${data.likes}`;
+                btn.closest('.pin-card').querySelector('.pin-like-btn[data-value="-1"]').innerText = `👎 ${data.dislikes}`;
+            }else {
+                showToast("Login to like Pins!","error")
+            }
+        });
+    });
+
 }
 
 
@@ -277,8 +304,8 @@ function renderComment(comment) {
       <div class="text-sm font-medium">${comment.user.username}<span class="text-gray-400 text-xs">• ${timeAgo(comment.timestamp)}</span></div>
       <p class="text-sm mb-2">${comment.text}</p>
       <div class="flex gap-4 text-xs text-gray-500">
-        <button class="like-btn cursor-pointer" data-value="1">👍 ${comment.likes}</button>
-        <button class="like-btn cursor-pointer" data-value="-1">👎 ${comment.dislikes}</button>
+        <button class="like-btn cursor-pointer hover:border" data-value="1">👍 ${comment.likes}</button>
+        <button class="like-btn cursor-pointer hover:border" data-value="-1">👎 ${comment.dislikes}</button>
         <button class="reply-btn text-blue-500 hover:underline">Reply</button>
       </div>
       <div class="reply-form hidden mt-2">
