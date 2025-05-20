@@ -24,8 +24,8 @@ export async function loadPins() {
         <h3 class="text-lg font-bold text-gray-800 mb-1">${pin.title}</h3>
         <p class="text-sm text-gray-600">${pin.description || ''}</p>
       </div>
-      <div class="carousel-wrapper w-full overflow-x-auto flex gap-2 px-4">
-        ${pin.images.map(img => `<img src="${backend}${img}" class="pin-thumbnail h-24 rounded object-cover" alt="${backend}${img}">`)}
+      <div class="carousel-wrapper w-full overflow-x-auto flex gap-2 px-4 py-2 scroll-smooth snap-x snap-mandatory">
+        ${pin.images.map(img => `<img src="${backend}${img}" class="pin-thumbnail h-24 aspect-video rounded object-cover flex-shrink-0 snap-start hover:scale-105 transition-transform duration-200 ease-in-out" alt="${backend}${img}">`)}
       </div>
       <div class="px-4 pb-4 flex flex-col gap-1 text-sm text-gray-600">
         <div><strong>By:</strong> ${pin.username}</div>
@@ -66,7 +66,7 @@ async function pinDetail(pinId) {
     // Format images (carousel)
     const imageHTML = data.images.map(img => {
         const filename = img.url.split('/').pop(); // extract filename
-        return `<img src="${backend}/uploads/user_${data.user_id}/images/${filename}" alt="${data.title}" class="pin-image rounded mb-4 w-full max-h-64 object-cover" />`;
+        return `<img src="${backend}/uploads/user_${data.user_id}/images/${filename}" alt="${data.title}" class="pin-thumbnail pin-image h-24 aspect-video rounded object-cover flex-shrink-0 snap-start hover:scale-105 transition-transform duration-200 ease-in-out" />`;
     }).join('');
 
 
@@ -82,7 +82,9 @@ async function pinDetail(pinId) {
 
       <h2 class="text-2xl font-bold mb-2">${data.title}</h2>
       <p class="text-sm text-gray-500 mb-4">By <span class="font-medium">${data.user.username}</span> • ${new Date(data.created_at).toLocaleDateString()}</p>
+       <div class="carousel-wrapper w-full overflow-x-auto flex gap-2 px-4 py-2 scroll-smooth snap-x snap-mandatory">
       ${imageHTML}
+      </div>
       <p class="text-gray-700 mb-4">${data.description}</p>
       <div class="flex flex-wrap gap-2 mb-4">${tagHTML}</div>
       <div class="flex items-center mb-2 text-sm text-gray-500">
