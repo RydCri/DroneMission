@@ -46,7 +46,7 @@
 <div class="wrapper">
 
 <!-- 🔐 Login Modal -->
-<div id="login-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden duration-300 ease-in-out">
+<div id="login-modal" class="fixed inset-0 bg-[rgba(0,0,0,0.8)] flex items-center justify-center z-50 hidden duration-300 ease-in-out">
   <div id="login-modal-content" class="bg-white rounded-2xl p-6 w-full max-w-md relative shadow-xl">
     <button class="close-button" data-modal-target="login-modal">✖</button>
     <h2 class="text-xl font-semibold mb-4">Sign in to your account</h2>
@@ -114,21 +114,18 @@
 </div>
 
 <!--Pin upload modal-->
-  <div id="pin-upload-modal" class="max-w-xl mx-auto p-6 bg-white rounded-2xl shadow-lg mt-10 hidden absolute">
+  <div id="pin-upload-modal" class="max-w-xl mx-auto p-6 bg-black text-white rounded-2xl shadow-lg mx-2 hidden absolute">
     <div class="rounded-xl w-full max-w-lg p-6 transform translate-y-4 ">
       <button class="close-button basis-32 relative" data-modal-target="pin-upload-modal">✖</button>
     <h2 class="bg-blue-500 rounded text-white text-2xl font-bold mb-4">Publish a Pin</h2>
     <form id="pinForm" enctype="multipart/form-data" class="space-y-4">
       <input type="text" name="title" placeholder="Title" required class="w-full p-2 border rounded"/>
-
       <textarea name="description" rows="4" placeholder="Description" class="w-full p-2 border rounded"></textarea>
       <label>3D Model (.glb)</label>
-      <input type="file" name="model" accept=".glb" required class="w-full border p-2 rounded"/>
+      <input type="file" name="model" accept=".glb" class="w-full border p-2 rounded"/>
       <label>Scans</label>
       <input type="file" name="images" accept="image/*" multiple class="w-full border p-2 rounded"/>
-
       <input type="text" name="tags" placeholder="Tags (comma-separated)" class="w-full p-2 border rounded"/>
-
       <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer">Publish</button>
     </form>
     </div>
@@ -142,7 +139,7 @@
   </section>
 
 <!--  Image Overlay-->
-  <div id="image-overlay" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+  <div id="image-overlay" class="hidden fixed inset-0 bg-[rgba(0,0,0,0.8)] flex items-center justify-center z-50">
     <img id="overlay-img" src="" class="max-w-full max-h-full rounded shadow-lg" />
     <span class="bg-[rgb(0,0,0)]/0.5 text-white z-100 absolute bottom-0 right-50">Click to Close Overlay</span>
   </div>
