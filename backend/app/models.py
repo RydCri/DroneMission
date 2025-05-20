@@ -96,6 +96,13 @@ class Like(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     pin_id = db.Column(db.Integer, db.ForeignKey('pin.id'))
+    value = db.Column(db.Integer)
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'pin_id', name='unique_user_pin_like'),
+    )
+
+
+user = db.relationship('User', backref='likes')
 
 
 class Comment(db.Model):
