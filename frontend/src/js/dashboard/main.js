@@ -1,8 +1,8 @@
-import "./dashboard/map.js";
-import "./dashboard/missionBuilder.js";
-import "./dashboard/tree.js"
-import { exportMissionJSON , generateKML, closeBatchEditor, closeWaypointEditor, openBatchEditor} from "./dashboard/tree.js";
-import { missions, waypoints, openWaypointEditor} from "./dashboard/missionBuilder.js";
+import "./map.js";
+import "./missionBuilder.js";
+import "./tree.js"
+import { exportMissionJSON , generateKML, closeBatchEditor, closeWaypointEditor, openBatchEditor} from "./tree.js";
+import { missions, waypoints, openWaypointEditor} from "./missionBuilder.js";
 
 window.exportMissionJSON = exportMissionJSON;
 window.closeBatchEditor = closeBatchEditor;
