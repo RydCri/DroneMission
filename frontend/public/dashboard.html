@@ -2,69 +2,308 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>Drone Mission Planner</title>
-    <link rel="stylesheet" href="src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Drone Mission Builder</title>
+    <link href="src/styles.css" rel="stylesheet">
+    <link href="src/assets/drone_icon.png" rel="icon">
 </head>
-<body>
-<!--Navbar-->
-<nav class="bg-gray-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
-    <!-- Left: Logo/Title -->
-    <div class="flex items-center space-x-3">
-        <img src="./drone_favi.png" alt="Logo" class="item_icon" style="height: 50px;width: 50px;" />
-        <span class="text-xl font-bold tracking-tight">FlightScan</span>
+<body class="">
+<div id="map" class="w-full h-screen absolute inset-0 z-0 overflow-visible"></div>
+<!--Preflight check-->
+<!-- Preflight Health Check Modal -->
+<div id="preflightModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg shadow-lg w-96 p-6">
+        <h2 class="text-xl font-semibold mb-4 text-center">🛩️ Mission Health Check</h2>
+        <div class="mb-4 text-center">
+            <p><strong>Mission Readiness:</strong></p>
+            <div class="relative pt-1">
+                <div class="overflow-hidden h-4 mb-2 text-xs flex rounded bg-gray-200">
+                    <div id="healthBar" style="width: 100%;" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"></div>
+                </div>
+                <p id="healthScore" class="text-sm font-semibold"></p>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <p><strong>Total Distance:</strong> <span id="totalDistance">...</span></p>
+            <p><strong>Estimated Flight Time:</strong> <span id="flightTime">...</span></p>
+        </div>
+
+        <div class="mb-4">
+            <h3 id="advisoriesBanner" class="text-lg font-semibold mb-2"></h3>
+            <ul id="advisoriesList" class="space-y-2">
+                <!-- Warnings will be inserted here dynamically -->
+            </ul>
+        </div>
+        <div class="mt-6">
+            <p><strong id="recommendationsBanner"></strong></p>
+            <ul id="recommendationsList" class="list-disc list-inside text-sm text-gray-700 mt-2 space-y-1"></ul>
+        </div>
+
+
+        <button onclick="closePreflightModal()" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded cursor-pointer w-full">
+            Close
+        </button>
+    </div>
+</div>
+
+
+
+
+<!-- Sidebar: Mission Config Panel -->
+<div id="mission-controls" class="absolute p-4 left-0 top-20 w-70 h-full bg-[rgb(255,255,255)]/90 rounded shadow-xl overflow-y-auto transform transition-transform duration-300 -translate-x-full">
+
+
+
+    <h2 class="text-lg font-semibold">Mission Setup</h2>
+
+    <div>
+        <label class="text-sm font-medium">Selected POI</label>
+        <div id="poi-coords" class="text-xs text-gray-600">Click on the map</div>
     </div>
 
-    <!-- Center: Nav Links -->
-    <div class="md:flex space-x-6">
-        <a href="/dashboard.html" class="hover:text-gray-300">Dashboard</a>
-        <a href="#" class="hover:text-gray-300">Explore Flights</a>
+    <div>
+        <label for="missionType" class="block text-sm font-medium">Mission Type</label>
+        <select id="missionType" class="w-full border p-2 rounded">
+            <option value="orbit">Orbit</option>
+            <option value="grid">Grid</option>
+            <!-- Add more in future -->
+        </select>
     </div>
 
-    <!-- Right: Auth/Profile -->
-    <div class="flex items-center space-x-4">
-    <button id="login-btn" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 cursor-pointer">Login</button>
-    <button id="profile-btn" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 hidden cursor-pointer">Profile</button>
-
+    <div id="orbit-config" class="space-y-2">
+        <div>
+            <label class="block text-sm font-medium">Number of Orbits</label>
+            <input type="number" id="orbitCount" value="1" min="1" class="w-full border p-2 rounded" />
+        </div>
+        <div>
+            <label class="block text-sm font-medium">Orbit Radius (m)</label>
+            <input type="number" id="orbitRadius" value="50" min="5" class="w-full border p-2 rounded" />
+        </div>
+        <div>
+            <label class="block text-sm font-medium">Drone Altitude (m)</label>
+            <input type="number" id="altitude" value="30" class="w-full border p-2 rounded" />
+        </div>
+        <div>
+            <label class="block text-sm font-medium">POI Altitude (m) <span class="text-sm">0 = ground level</span></label>
+            <input type="number" id="poi-Alt" value="1" class="w-full border p-2 rounded" />
+        </div>
+        <div>
+            <label class="block text-sm font-medium">Speed (m/s)</label>
+            <input type="number" id="speed" value="5" class="w-full border p-2 rounded" />
+        </div>
+        <div>
+            <label class="block text-sm font-medium">Camera Action</label>
+            <select id="cameraAction" class="w-full border p-2 rounded">
+                <option value="photo">📷 Photo</option>
+                <option value="video">🎥 Video</option>
+            </select>
+        </div>
+        <button id="generateMissionBtn"
+                class="w-full bg-blue-600 text-white p-2 my-2 rounded hover:bg-blue-700 disabled:bg-gray-400 hover:cursor-pointer"
+                disabled>Generate Mission</button>
     </div>
-</nav>
 
-<div id="login-container">
-    <!-- 🔐 Login Modal -->
-    <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 duration-300 ease-in-out">
-        <div id="login-modal-content" class="bg-white rounded-2xl p-6 w-full max-w-md relative shadow-xl">
-            <button class="close-button" data-modal-target="login-modal">✖</button>
-            <h2 class="text-xl font-semibold mb-4">Sign in to your account</h2>
-            <form id="login-form" class="flex flex-col gap-4">
-                <input type="text" name="username" placeholder="Username" class="border p-2 rounded" required />
-                <input type="password" name="password" placeholder="Password" class="border p-2 rounded" required />
-                <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 cursor-pointer">Login</button>
-            </form>
+</div>
+
+
+
+<!-- Waypoint Edit Modal -->
+<div id="editModal" class="fixed inset-0 bg-[rgb(0,0,0)]/50 flex items-center justify-center z-50 hidden">
+
+    <div class="bg-black text-white rounded-lg p-2 w-96 shadow-lg">
+        <h2 id="editModalTitle" class="text-xl font-bold mb-4"></h2>
+        <div id="waypointForm" class="bg-black text-white p-2 rounded-md shadow-lg max-w-sm space-y-2">
+            <input type="hidden" id="missionIndex"/>
+            <input type="hidden" id="waypointIndex"/>
+
+            <!-- Altitude -->
+
+            <div>
+                <label for="edit-poi-altitude" class="block text-sm font-semibold mb-1">POI Altitude (m)<span class="tx-sm">0 = ground level</span></label>
+                <input
+                        type="number"
+                        id="edit-poi-altitude"
+                        class="w-full bg-gray-800 text-white border border-gray-600 p-2 rounded focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+                        placeholder="Target altitude"
+                        value="1"
+                />
+            </div>
+
+            <div>
+                <label for="edit-altitude" class="block text-sm font-semibold mb-1">Drone Altitude (m)</label>
+                <input
+                        type="number"
+                        id="edit-altitude"
+                        class="w-full bg-gray-800 text-white border border-gray-600 p-2 rounded focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+                        placeholder="Enter drone altitude"
+                />
+            </div>
+
+            <!-- Speed -->
+            <div>
+                <label for="edit-speed" class="block text-sm font-semibold mb-1">Speed (m/s)</label>
+                <input
+                        type="number"
+                        id="edit-speed"
+                        class="w-full bg-gray-800 text-white border border-gray-600 p-2 rounded focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+                        placeholder="Enter speed"
+                />
+            </div>
+            <div class="bg-black text-white p-4 rounded-md shadow-lg max-w-sm space-y-2">
+                <label for="edit-gimbal" class="block text-sm font-semibold">Gimbal Angle (°)</label>
+                <div class="flex items-center space-x-3">
+                    <input
+                            type="range"
+                            min="-100"
+                            max="100"
+                            value="0"
+                            id="edit-gimbal"
+                            class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-thumb"
+                            oninput="this.nextElementSibling.value = this.value"
+                    />
+                    <output class="w-12 text-right">auto</output>
+                </div>
+                <p class="text-xs text-gray-400">Adjust the gimbal pitch angle from -100° (down) to 100° (up).</p>
+            </div>
+
+            <hr>
+            <div class="bg-black text-white p-4 rounded-md shadow-lg max-w-sm">
+                <label class="block text-md font-semibold mb-2">Gimbal Behavior</label>
+                <form action="#" class="space-y-2" aria-label="Gimbal Tracking Options">
+
+                    <label for="radio-disable" class="flex items-center space-x-3 cursor-pointer hover:text-gray-300">
+                        <input
+                                type="radio"
+                                id="radio-disable"
+                                name="gimbal-options"
+                                value="0"
+                                class="radio-input text-black"
+                        />
+                        <span class="text-sm">Disable — Fixed gimbal, no tracking</span>
+                    </label>
+
+                    <label for="radio-track" class="flex items-center space-x-3 cursor-pointer hover:text-gray-300">
+                        <input
+                                type="radio"
+                                id="radio-track"
+                                name="gimbal-options"
+                                value="1"
+                                class="radio-input text-black"
+                                checked
+                        />
+                        <span class="text-sm">Track POI — Gimbal follows point of interest in real time</span>
+                    </label>
+
+                    <label for="radio-interpolate" class="flex items-center space-x-3 cursor-pointer hover:text-gray-300">
+                        <input
+                                type="radio"
+                                id="radio-interpolate"
+                                name="gimbal-options"
+                                value="2"
+                                class="radio-input text-black"
+                        />
+                        <span class="text-sm">Interpolate — Gimbal sweeps or transitions between POIs</span>
+                    </label>
+
+                </form>
+            </div>
+
+            <div>
+                <label for="edit-action" class="block text-sm font-semibold mb-1">Camera Action</label>
+                <select id="edit-action" class="w-full bg-gray-800 text-white border border-gray-600 p-2 rounded cursor-pointer focus:ring-2 focus:ring-cyan-500 focus:outline-none">
+                    <option value="photo">📸 Photo</option>
+                    <option value="start_video">🎥 Start Video</option>
+                    <option value="stop_video">🛑 Stop Video</option>
+                </select>
+            </div>
+            <div class="flex justify-end gap-2 mt-4">
+                <button type="button" id="editCancelBtn" class="px-4 py-2 bg-gray-800 rounded hover:bg-gray-700 cursor-pointer focus:ring-cyan-500">Cancel</button>
+                <button id="editSaveBtn" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer focus:ring-cyan-500">Save</button>
+            </div>
         </div>
     </div>
 </div>
 
-<div id="map-container" class="bg-black max-w-xl rounded-2xl p-6 w-full shadow-xl">
-    <h2 class="p-2 text-white tx-bold">Mission Log</h2>
-    <ul id="mission-log"></ul>
-    <div id="map" style="height: 500px;" class="rounded-2xl p-6 w-full">
-    </div>
-    <!-- Below map div -->
-    <div id="mission-controls" class="bg-white rounded-2xl p-6 w-full max-w-md relative shadow-xl">
-        <p>📍 Selected POI: <span id="poi-coords">None</span></p>
+<!-- Collapsible Tree Panel -->
+<div id="waypointTreeWrapper" class="fixed left-0 top-20 h-full max-w-md w-full z-10 transform transition-transform duration-300 -translate-x-full">
+    <div id="waypointTree" class="p-4 w-full h-full bg-[rgb(255,255,255)]/90 rounded-r-2xl shadow-xl overflow-y-auto">
+        <h2 class="text-xl font-bold mb-2">Mission Waypoints</h2>
+        <button onclick="exportMissionJSON()" class="relative hover:bg-[rgb(0,0,0)]/90 bg-[rgb(100,100,100)]/50 text-white px-3 py-1 mb-2 rounded-xs shadow-md z-50 cursor-pointer">
+            Export JSON
+        </button>
 
-        <label for="mission-type">🚁 Mission Type:</label>
-        <select id="mission-type">
-            <option value="">-- Select a mission --</option>
-            <option value="orbit">Orbit POI</option>
-            <option value="grid-photo">Grid (2D)</option>
-            <option value="double-grid-photo">Double Grid (3D)</option>
-        </select>
-
-        <button class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 cursor-pointer" id="start-mission" disabled>Start Mission</button>
+        <ul class="space-y-2" id="missionList">
+            <!-- Missions will be injected here -->
+        </ul>
     </div>
 </div>
 
-<script type="module" src="src/js/map.js"></script>
-<script type="module" src="src/js/dashboard.js"></script>
+<!-- Batch Edit Panel -->
+<div id="batchEditor" class="hidden right-4 absolute fixed top-4 p-4 bg-white rounded-2xl shadow-xl w-80 z-10">
+    <h3 class="text-lg font-semibold mb-2">Batch Edit</h3>
+    <form id="batchEditForm" class="space-y-2">
+        <div>
+            <label for="batch-poi-altitude" class="block text-sm font-medium">POI Altitude (m)<span class="tx-sm">0 = ground level</span></label>
+            <input type="number" id="batch-poi-altitude" class="w-full border rounded px-2 py-1">
+        </div>
+        <div>
+            <label for="batch-altitude" class="block text-sm font-medium">Drone Altitude (m)</label>
+            <input type="number" id="batch-altitude" class="w-full border rounded px-2 py-1">
+        </div>
+        <div>
+            <label for="batch-speed" class="block text-sm font-medium">Speed (m/s)</label>
+            <input type="number" id="batch-speed" class="w-full border rounded px-2 py-1">
+        </div>
+        <div>
+            <label for="batch-action" class="block text-sm font-medium">Camera Action</label>
+            <select id="batch-action" class="w-full border rounded px-2 py-1 cursor-pointer">
+                <option value="">-- No Change --</option>
+                <option value="Photo">Photo</option>
+                <option value="Start Video">Start Video</option>
+                <option value="Stop Video">Stop Video</option>
+            </select>
+        </div>
+        <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 cursor-pointer">Apply to All</button>
+        <button type="button" onclick="closeBatchEditor()" class="ml-2 text-sm text-gray-600 hover:underline hover:text-gray-700 cursor-pointer">Cancel</button>
+    </form>
+</div>
+
+<!-- Waypoint Editor Panel -->
+<div id="waypointEditor" class="hidden fixed right-4 top-4 p-4 bg-white rounded-2xl shadow-xl w-80 z-10">
+    <h3 class="text-lg font-semibold mb-2">Edit Waypoint</h3>
+    <form id="waypointEditForm" class="space-y-2">
+        <div>
+            <label for="wp-poi-altitude" class="block text-sm font-medium">POI Altitude (m)<span class="tx-sm">0 = ground level</span></label>
+            <input type="number" id="wp-poi-altitude" class="w-full border rounded px-2 py-1">
+        </div>
+        <div>
+            <label for="wp-altitude" class="block text-sm font-medium">Drone Altitude (m)</label>
+            <input type="number" id="wp-altitude" class="w-full border rounded px-2 py-1">
+        </div>
+        <div>
+            <label for="wp-speed" class="block text-sm font-medium">Speed (m/s)</label>
+            <input type="number" id="wp-speed" class="w-full border rounded px-2 py-1">
+        </div>
+        <div>
+            <label for="wp-action" class="block text-sm font-medium">Camera Action</label>
+            <select id="wp-action" class="w-full border rounded px-2 py-1">
+                <option value="Photo">Photo</option>
+                <option value="Start Video">Start Video</option>
+                <option value="Stop Video">Stop Video</option>
+            </select>
+        </div>
+        <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Save</button>
+        <button type="button" onclick="closeWaypointEditor()" class="ml-2 text-sm text-gray-600 hover:underline">Cancel</button>
+    </form>
+</div>
+
+
+<script type="module" src="src/js/dashboard/main.js"></script>
+<script>
+    function closePreflightModal() {
+        document.getElementById('preflightModal').classList.add('hidden');
+    }
+</script>
 </body>
 </html>
