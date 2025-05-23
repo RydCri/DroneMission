@@ -35,6 +35,14 @@ class Flight(db.Model):
     tags = db.relationship('Tag', secondary='flight_tags', backref=db.backref('flights', lazy='dynamic'))
 
 
+class FlightKML(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    flight_id = db.Column(db.Integer, db.ForeignKey('flight.id'), nullable=False)
+    kml_content = db.Column(db.Text)
+    json_content = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+
+
 class Pin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
