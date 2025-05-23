@@ -10,7 +10,7 @@ from .routes import register_routes
 from .routes.auth import auth as auth_blueprint
 from .routes.main import main as main_blueprint
 from .routes.pins import pins as pins_blueprint
-
+from .routes.export import export as export_blueprint
 
 def create_app():
     app = Flask(__name__)
@@ -47,6 +47,7 @@ def create_app():
              r"/auth/*": {"origins": "http://localhost:5173"},
              r"/api/*": {"origins": "http://localhost:5173"},
              r"/pins/*": {"origins": "http://localhost:5173"},
+             r"/export/*": {"origins": "http://localhost:5173"},
          }
          )
     migrate = Migrate(app, db)
@@ -55,6 +56,7 @@ def create_app():
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
     app.register_blueprint(main_blueprint, url_prefix='/api')
     app.register_blueprint(pins_blueprint, url_prefix='/pins')
+    app.register_blueprint(export_blueprint, url_prefix='/export')
 
     # Serve uploaded files
     @app.route('/uploads/<path:filename>')
