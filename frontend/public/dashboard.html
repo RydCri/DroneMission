@@ -8,6 +8,25 @@
     <link href="src/assets/drone_icon.png" rel="icon">
 </head>
 <body class="">
+<!-- 🔐 Login Modal -->
+<div id="login-modal" class="fixed inset-0 bg-[rgba(0,0,0,0.8)] flex items-center justify-center z-50 hidden duration-300 ease-in-out">
+    <div id="login-modal-content" class="bg-white rounded-2xl p-6 w-full max-w-md relative shadow-xl">
+        <button class="close-button" data-modal-target="login-modal">✖</button>
+        <h2 class="text-xl font-semibold mb-4">Sign in to your account</h2>
+        <form id="login-form" class="flex flex-col gap-4">
+            <input type="text" name="username" placeholder="Username" class="border p-2 rounded" required />
+            <input type="password" name="password" placeholder="Password" class="border p-2 rounded" required />
+            <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 cursor-pointer">Login</button>
+            <a class="text-grey-500 hover:text-blue-500" href="/signup.html">Not a member? Signup!</a>
+        </form>
+    </div>
+</div>
+
+<!--Flight Modal-->
+<div id="flight-list" class="fixed inset-0 bg-[rgba(0,0,0,0.8)] flex items-center justify-center z-50 hidden duration-300 ease-in-out">
+</div>
+
+
 <div id="map" class="w-full h-screen absolute inset-0 z-0 overflow-visible"></div>
 <!--Preflight check-->
 <!-- Preflight Health Check Modal -->
