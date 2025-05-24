@@ -1,4 +1,7 @@
 import { Loader } from "@googlemaps/js-api-loader";
+import { setupAuth } from "../auth.js";
+import { ModalManager } from '../modal.js';
+
 let markers;
 
 const loader = new Loader({
@@ -113,7 +116,7 @@ function initMapControls(map) {
         if (places && places.length > 0) {
             places.forEach((place) => {
                 const placeElement = document.createElement('div');
-                placeElement.classList.add('result-item'); // Add a class for styling and event listener
+                placeElement.classList.add('result-item');
 
                 placeElement.innerHTML = `<div class="cursor-pointer hover:bg-blue-400 hover:text-white"><span>${place.name}</span><br>${place.formatted_address || 'No address available'}}</div>`;
                 resultsUI.appendChild(placeElement);
@@ -263,6 +266,10 @@ function initMapControls(map) {
     wpTreeToggle.className = "px-3 py-1 bg-[rgb(0,0,0)]/60 hover:bg-[rgb(0,0,0)]/80 text-white active:border rounded shadow text-sm hover:cursor-pointer";
     wpTreeToggle.id = 'mission-toggle'
 
+    const loginBtn = document.createElement("button");
+    loginBtn.textContent = "Login";
+    loginBtn.classList.add("text-xs", "bg-blue-500", "text-white", "rounded", "px-2", "py-0.5","hover:bg-blue-600","cursor-pointer");
+    loginBtn.onclick = () => loginModal();
 
 
     // Append buttons
@@ -272,6 +279,7 @@ function initMapControls(map) {
     wpUI.appendChild(missionBtn);
     wpUI.appendChild(wpTreeToggle);
     wpUI.appendChild(searchUI);
+    wpUI.appendChild(loginBtn);
     missionBtn.addEventListener('click', () => {
         missionUI.classList.toggle('-translate-x-full')
     });
@@ -295,4 +303,8 @@ let mapInstance = null;
 
 export async function getMap() {
     return mapPromise;
+}
+
+function loginModal() {
+    ModalManager.toggle('login-modal')
 }
