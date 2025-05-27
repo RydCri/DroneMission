@@ -122,7 +122,7 @@ async function loadProfile() {
         credentials: 'include'
     });
 
-    if (!res.ok) return alert('Failed to load flights.');
+    if (!res.ok) return showToast('Failed to load flights.', 'error');
 
     const { flights } = await res.json();
     const profileList = document.getElementById('flight-modal-content');
