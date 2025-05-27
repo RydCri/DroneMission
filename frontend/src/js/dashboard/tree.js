@@ -1,6 +1,7 @@
 import {missions, openWaypointEditor} from "./missionBuilder.js";
 import { waypoints} from "./missionBuilder.js";
 import { getMap } from "./map.js";
+import {ModalManager} from "../modal.js";
 
 
 const backend = 'http://127.0.0.1:5000'
@@ -55,7 +56,7 @@ function downloadKML(mission) {
 
 
 // Export to JSON
-export function exportMissionJSON() {
+export function exportMissionJSON(download=null) {
     const cleanedMissions = missions.map((mission) => ({
         ...mission,
         waypoints: mission.waypoints.map(({ position, meta }) => ({
@@ -67,12 +68,16 @@ export function exportMissionJSON() {
     const blob = new Blob([JSON.stringify(cleanedMissions, null, 2)], {
         type: "application/json",
     });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "missions.json";
-    link.click();
-    URL.revokeObjectURL(url);
+    if (download) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "missions.json";
+        link.click();
+        URL.revokeObjectURL(url);
+    } else {
+        return blob;
+    }
 }
 
 // TODO: camera and bearing logic for pan flight
@@ -246,7 +251,7 @@ export function addMissionToTree(mission) {
     const saveFlightBtn = document.createElement("button");
     saveFlightBtn.textContent = "Save Flight";
     saveFlightBtn.classList.add("text-xs", "bg-blue-500", "text-white", "rounded", "px-2", "py-0.5","hover:bg-blue-600", "cursor-pointer");
-    saveFlightBtn.onclick = () => saveFlightData(currentFlightId, `${downloadKML(mission)}`, `${exportMissionJSON()}`)
+    saveFlightBtn.onclick = () => saveFlightData()
 
     const deleteBtn = document.createElement("button");
     deleteBtn.id = 'deleteMissionTree'
@@ -301,24 +306,60 @@ export function addMissionToTree(mission) {
 }
 
 
-async function saveFlightData(flightId, kmlContent, jsonContent) {
-    const res = await fetch(`${backend}/export/save_flight_data`, {
-        method: 'POST',
+async function saveFlightData() {
+    const res = await fetch(`${backend}/api/flights/user`, {
+        method: 'GET',
         credentials: "include",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            flight_id: flightId,
-            kml_content: kmlContent,
-            json_content: jsonContent
-        })
-    });
+    })
 
-    const result = await res.json();
-    if (res.ok) {
-        alert('Flight saved!');
-    } else {
-        alert(`Error: ${result.error}`);
-    }
+    const { flights } = await res.json();
+    console.log(flights)
+
+
+    // flightId, kmlContent, jsonContent
+        const flightUI = document.getElementById('flight-list')
+        flightUI.innerHTML = '';
+        flights.forEach(f => {
+            const flightItem = document.createElement('div');
+            flightItem.classList.add('profile-flight');
+
+            flightItem.innerHTML = `
+            <div class="flight-info">
+                <img class="thumbnail" src="${backend}${f.scanPath}" alt="${f.title}">
+                <div>
+                    <div class="flight-title">${f.title}</div>
+                    <div class="flight-meta">ID: ${f.id}</div>
+                </div>
+            </div>
+            <div class="dropdown">
+                <button class="dropdown-toggle">⋯</button>
+                <div class="dropdown-menu">
+                    <button class="edit-flight" data-id="${f.id}">Edit</button>
+                    <button class="delete-flight" data-id="${f.id}">Delete</button>
+                </div>
+            </div>
+        `;
+
+            flightUI.append(flightItem);
+        });
+            ModalManager.toggle(flightUI);
+    // const res = await fetch(`${backend}/export/save_flight_data`, {
+    //     method: 'POST',
+    //     credentials: "include",
+    //     headers: {
+    //         'Content-Type': 'application/json'
+    //     },
+    //     body: JSON.stringify({
+    //         flight_id: flightId,
+    //         kml_content: kmlContent,
+    //         json_content: jsonContent
+    //     })
+    // });
+    //
+    // const result = await res.json();
+    // if (res.ok) {
+    //     alert('Flight saved!');
+    // } else {
+    //     alert(`Error: ${result.error}`);
+    // }
 }
